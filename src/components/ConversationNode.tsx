@@ -46,7 +46,7 @@ export const ConversationNode = memo((props: NodeProps) => {
       const range = selection?.getRangeAt(0);
       const rect = range?.getBoundingClientRect();
       if (rect) {
-        setForkPosition({ x: rect.right, y: rect.bottom });
+        setForkPosition({ x: rect.left + rect.width / 2, y: rect.top - 10 });
       }
     } else {
       setShowForkButton(false);
@@ -101,10 +101,10 @@ export const ConversationNode = memo((props: NodeProps) => {
       {/* Fork Button */}
       {showForkButton && (
         <div 
-          className="fixed z-50 animate-in fade-in duration-200"
+          className="fixed z-50 animate-in fade-in duration-200 -translate-x-1/2 -translate-y-full"
           style={{ 
-            left: `${forkPosition.x + 10}px`, 
-            top: `${forkPosition.y + 10}px` 
+            left: `${forkPosition.x}px`, 
+            top: `${forkPosition.y}px` 
           }}
         >
           <Button
@@ -191,7 +191,7 @@ export const ConversationNode = memo((props: NodeProps) => {
                       </>
                     ) : (
                       <div 
-                        className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed select-text cursor-text"
+                        className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed select-text cursor-text [&::selection]:bg-yellow-400/30 [&::selection]:text-white"
                         onMouseUp={handleTextSelection}
                       >
                         {message.content}
