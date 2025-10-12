@@ -1,4 +1,4 @@
-import { memo, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Handle, Position, NodeProps } from "@xyflow/react";
 import { ConversationNode as ConversationNodeType, AIModel, Message } from "@/types/conversation";
 import { getModelInfo } from "@/lib/modelConfig";
@@ -22,7 +22,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
 }
 
-export const ConversationNode = memo((props: NodeProps) => {
+export const ConversationNode = (props: NodeProps) => {
   const data = props.data as ConversationNodeData;
   const modelInfo = getModelInfo(data.model);
   const messageCount = data.messages.filter((m: Message) => m.role !== "system").length;
@@ -265,6 +265,6 @@ export const ConversationNode = memo((props: NodeProps) => {
       <Handle type="source" position={Position.Bottom} className="!bg-white" />
     </div>
   );
-});
+};
 
 ConversationNode.displayName = "ConversationNode";

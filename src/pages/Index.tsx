@@ -68,17 +68,25 @@ function FlowCanvas() {
           const newMap = new Map(prev);
           newMap.set(id, updated);
           
-          // Force node data update
+          // Force complete node data refresh with new object reference
           setNodes((nds) =>
             nds.map((n) =>
               n.id === id
                 ? {
                     ...n,
                     data: {
-                      ...updated,
+                      id,
+                      model: updated.model,
+                      title: updated.title,
+                      messages: [...msgs], // New array reference
+                      parentId: updated.parentId,
+                      position: updated.position,
+                      createdAt: updated.createdAt,
                       initialInput: undefined,
-                      onBranch: n.data.onBranch,
-                      onExpand: n.data.onExpand,
+                      onBranch: (nodeId: string, selectedText?: string) => {
+                        handleBranch(nodeId, selectedText);
+                      },
+                      onExpand: (nodeId: string) => handleExpand(nodeId),
                       onUpdateMessages: n.data.onUpdateMessages,
                     },
                   }
