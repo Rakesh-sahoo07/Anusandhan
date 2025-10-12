@@ -76,6 +76,7 @@ function FlowCanvas() {
         type: "conversation",
         position,
         data: nodeData,
+        dragHandle: ".drag-handle",
       };
 
       setNodes((nds) => [...nds, newNode]);

@@ -124,8 +124,8 @@ export const ConversationNode = memo((props: NodeProps) => {
           "shadow-lg border-white/10 flex flex-col h-[500px]"
         )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-white/5 flex-shrink-0">
+        {/* Header - Drag Handle */}
+        <div className="drag-handle flex items-center justify-between p-3 border-b border-white/10 bg-white/5 flex-shrink-0 cursor-move">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="w-2 h-2 rounded-full bg-white flex-shrink-0" />
             <div className="flex flex-col min-w-0 flex-1">
