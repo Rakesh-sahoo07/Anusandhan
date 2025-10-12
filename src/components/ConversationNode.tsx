@@ -112,17 +112,68 @@ export const ConversationNode = (props: NodeProps) => {
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: `msg-${Date.now()}`,
-        role: "assistant",
-        content: "This is a placeholder response. Connect to Groq AI to enable real AI conversations.",
-        timestamp: Date.now()
-      };
-      data.onUpdateMessages(data.id, [...updatedMessages, aiMessage]);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/groq-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: updatedMessages.map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          model: data.model
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to get response from Groq');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6);
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content;
+              
+              if (content) {
+                assistantContent += content;
+                const aiMessage: Message = {
+                  id: `msg-${Date.now()}`,
+                  role: "assistant",
+                  content: assistantContent,
+                  timestamp: Date.now()
+                };
+                data.onUpdateMessages(data.id, [...updatedMessages, aiMessage]);
+              }
+            } catch (e) {
+              // Ignore parse errors for incomplete chunks
+            }
+          }
+        }
+      }
+
       setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Error calling Groq:', error);
+      toast.error('Failed to get AI response');
+      setIsLoading(false);
+    }
   };
 
   return (
