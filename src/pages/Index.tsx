@@ -54,11 +54,22 @@ function FlowCanvas() {
         createdAt: Date.now(),
       };
 
-      const nodeData: ConversationNodeData = {
-        ...newConversationNode,
-        onBranch: handleBranch,
-        onExpand: handleExpand,
-      };
+    const nodeData: ConversationNodeData = {
+      ...newConversationNode,
+      onBranch: (id: string) => handleBranch(id),
+      onExpand: (id: string) => handleExpand(id),
+      onUpdateMessages: (id: string, msgs: Message[]) => {
+        setConversationData((prev) => {
+          const node = prev.get(id);
+          if (!node) return prev;
+          const updated = { ...node, messages: msgs };
+          const newMap = new Map(prev);
+          newMap.set(id, updated);
+          updateNodeData(id, updated);
+          return newMap;
+        });
+      },
+    };
 
       const newNode: Node = {
         id: nodeId,
@@ -123,8 +134,19 @@ function FlowCanvas() {
               ...node,
               data: {
                 ...updatedNode,
-                onBranch: handleBranch,
-                onExpand: handleExpand,
+                onBranch: (id: string) => handleBranch(id),
+                onExpand: (id: string) => handleExpand(id),
+                onUpdateMessages: (id: string, msgs: Message[]) => {
+                  setConversationData((prev) => {
+                    const n = prev.get(id);
+                    if (!n) return prev;
+                    const upd = { ...n, messages: msgs };
+                    const newMap = new Map(prev);
+                    newMap.set(id, upd);
+                    updateNodeData(id, upd);
+                    return newMap;
+                  });
+                },
               },
             }
           : node
