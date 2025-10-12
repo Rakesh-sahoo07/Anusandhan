@@ -56,7 +56,10 @@ function FlowCanvas() {
 
     const nodeData: ConversationNodeData = {
       ...newConversationNode,
-      onBranch: (id: string, selectedText?: string) => handleBranch(id, selectedText),
+      onBranch: (id: string, selectedText?: string) => {
+        console.log("onBranch callback triggered:", { id, selectedText });
+        handleBranch(id, selectedText);
+      },
       onExpand: (id: string) => handleExpand(id),
       onUpdateMessages: (id: string, msgs: Message[]) => {
         setConversationData((prev) => {
