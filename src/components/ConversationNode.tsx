@@ -59,15 +59,23 @@ export const ConversationNode = memo((props: NodeProps) => {
         </div>
 
         {/* Content Preview */}
-        <div className="p-4 space-y-2">
+        <div 
+          className="p-4 space-y-2 cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={() => data.onExpand(data.id)}
+        >
           {lastMessage && (
             <div className="text-sm text-muted-foreground line-clamp-3">
               {lastMessage.content}
             </div>
           )}
           {!lastMessage && (
-            <div className="text-sm text-muted-foreground italic">
-              New conversation
+            <div className="space-y-1">
+              <div className="text-sm text-muted-foreground">
+                Click to start chatting
+              </div>
+              <div className="text-xs text-muted-foreground/60">
+                No messages yet
+              </div>
             </div>
           )}
         </div>
