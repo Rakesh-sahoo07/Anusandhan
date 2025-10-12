@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { Handle, Position, NodeProps } from "@xyflow/react";
 import { ConversationNode as ConversationNodeType, AIModel, Message } from "@/types/conversation";
-import { getModelInfo } from "@/lib/modelConfig";
+import { getModelInfo, AI_MODELS } from "@/lib/modelConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface ConversationNodeData extends Record<string, unknown> {
   id: string;
@@ -20,6 +27,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   onBranch: (nodeId: string, selectedText?: string) => void;
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
+  onChangeModel?: (nodeId: string, model: AIModel) => void;
 }
 
 export const ConversationNode = (props: NodeProps) => {
@@ -161,9 +169,25 @@ export const ConversationNode = (props: NodeProps) => {
               <span className="font-semibold text-sm text-white truncate">
                 {data.title}
               </span>
-              <span className="text-xs text-white/60">
-                {modelInfo.name}
-              </span>
+              <Select 
+                value={data.model} 
+                onValueChange={(value) => data.onChangeModel?.(data.id, value as AIModel)}
+              >
+                <SelectTrigger className="h-5 w-auto border-none bg-transparent text-xs text-white/60 hover:text-white/80 focus:ring-0 gap-1 px-0 [&>svg]:w-3 [&>svg]:h-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a1a] border-white/20">
+                  {AI_MODELS.map((model) => (
+                    <SelectItem 
+                      key={model.id} 
+                      value={model.id}
+                      className="text-white hover:bg-white/10 focus:bg-white/10"
+                    >
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">

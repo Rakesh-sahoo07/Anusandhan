@@ -9,32 +9,38 @@ export interface ModelInfo {
 
 export const AI_MODELS: ModelInfo[] = [
   {
-    id: "llama-3-8b",
-    name: "Llama 3 8B",
+    id: "llama-3.3-70b-versatile",
+    name: "Llama 3.3 70B",
     color: "model-llama",
-    description: "Fast and efficient general-purpose model"
+    description: "Most capable Llama model"
   },
   {
-    id: "llama-3-70b",
-    name: "Llama 3 70B",
+    id: "llama-3.1-70b-versatile",
+    name: "Llama 3.1 70B",
     color: "model-llama",
     description: "Powerful reasoning and comprehension"
   },
   {
-    id: "mixtral-8x7b",
+    id: "llama-3.1-8b-instant",
+    name: "Llama 3.1 8B",
+    color: "model-llama",
+    description: "Fast and efficient"
+  },
+  {
+    id: "llama-3-8b",
+    name: "Llama 3 8B",
+    color: "model-llama",
+    description: "Balanced speed and capability"
+  },
+  {
+    id: "mixtral-8x7b-32768",
     name: "Mixtral 8x7B",
     color: "model-mixtral",
-    description: "Expert mixture model for diverse tasks"
+    description: "Expert mixture model"
   },
   {
-    id: "mistral-7b",
-    name: "Mistral 7B",
-    color: "model-mistral",
-    description: "Balanced performance and speed"
-  },
-  {
-    id: "gemma-7b",
-    name: "Gemma 7B",
+    id: "gemma2-9b-it",
+    name: "Gemma 2 9B",
     color: "model-gemma",
     description: "Lightweight and efficient"
   }

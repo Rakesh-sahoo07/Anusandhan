@@ -75,7 +75,7 @@ function FlowCanvas() {
       
       const newConversationNode: ConversationNodeType = {
         id: nodeId,
-        model: "llama-3-8b",
+        model: "llama-3.3-70b-versatile",
         title: `untitled${nodeCount}`,
         messages: initialMessages || [],
         parentId,
@@ -89,7 +89,7 @@ function FlowCanvas() {
       setNodes((nds) => {
         const nodeData: ConversationNodeData = {
           id: nodeId,
-          model: "llama-3-8b",
+          model: "llama-3.3-70b-versatile",
           title: `untitled${nodeCount}`,
           messages: initialMessages || [],
           parentId,
@@ -130,6 +130,7 @@ function FlowCanvas() {
             });
           },
           onUpdateMessages: handleUpdateMessages,
+          onChangeModel: handleChangeModel,
         };
 
         const newNode: Node = {
