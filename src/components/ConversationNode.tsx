@@ -59,11 +59,16 @@ export const ConversationNode = memo((props: NodeProps) => {
   };
 
   const handleFork = () => {
+    console.log("Fork clicked", { selectedText, nodeId: data.id });
     if (selectedText) {
       data.onBranch(data.id, selectedText);
       setShowForkButton(false);
       setSelectedText("");
-      window.getSelection()?.removeAllRanges();
+      
+      // Clear selection after a brief delay to ensure fork completes
+      setTimeout(() => {
+        window.getSelection()?.removeAllRanges();
+      }, 100);
     }
   };
 
@@ -105,16 +110,21 @@ export const ConversationNode = memo((props: NodeProps) => {
       {/* Fork Button */}
       {showForkButton && (
         <div 
-          className="fixed z-50 animate-in fade-in duration-200"
+          className="fixed z-[9999] animate-in fade-in duration-200"
           style={{ 
             left: `${forkPosition.x}px`, 
             top: `${forkPosition.y}px`,
             transform: 'translate(-50%, calc(-100% - 8px))'
           }}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <Button
             size="sm"
-            onClick={handleFork}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFork();
+            }}
             className="bg-white text-black hover:bg-white/90 gap-1 shadow-lg"
           >
             <GitBranch className="w-3 h-3" />

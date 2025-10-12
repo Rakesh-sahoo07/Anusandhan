@@ -31,9 +31,9 @@ function FlowCanvas() {
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
 
   useEffect(() => {
-    // Initialize with first node
+    // Initialize with first node centered on canvas
     if (nodes.length === 0) {
-      createNewNode(null, { x: 250, y: 100 }, []);
+      createNewNode(null, { x: 400, y: 250 }, []);
     }
   }, []);
 
@@ -99,8 +99,12 @@ function FlowCanvas() {
   }, [setNodes, setEdges]);
 
   const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
+    console.log("handleBranch called", { nodeId, selectedText });
     const parentNode = conversationData.get(nodeId);
-    if (!parentNode) return;
+    if (!parentNode) {
+      console.log("Parent node not found");
+      return;
+    }
 
     const position = {
       x: parentNode.position.x + 450,
@@ -117,9 +121,11 @@ function FlowCanvas() {
         content: selectedText,
         timestamp: Date.now()
       }];
+      console.log("Creating fork with selected text:", selectedText);
     } else {
       // Otherwise copy parent messages
       initialMessages = [...parentNode.messages];
+      console.log("Creating branch with copied messages");
     }
 
     createNewNode(nodeId, position, initialMessages);
