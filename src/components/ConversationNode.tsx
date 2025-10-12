@@ -44,6 +44,13 @@ export const ConversationNode = (props: NodeProps) => {
     }
   }, [isLoading, data.messages.length]);
 
+  // Sync input with initialInput when it changes
+  useEffect(() => {
+    if (data.initialInput && data.initialInput !== input) {
+      setInput(data.initialInput);
+    }
+  }, [data.initialInput]);
+
   const handleTextSelection = (e: React.MouseEvent) => {
     const selection = window.getSelection();
     const text = selection?.toString().trim();
