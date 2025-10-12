@@ -35,7 +35,7 @@ export const ConversationNode = memo((props: NodeProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data.messages]);
 
-  const handleTextSelection = () => {
+  const handleTextSelection = (e: React.MouseEvent) => {
     const selection = window.getSelection();
     const text = selection?.toString().trim();
     
@@ -46,7 +46,11 @@ export const ConversationNode = memo((props: NodeProps) => {
       const range = selection?.getRangeAt(0);
       const rect = range?.getBoundingClientRect();
       if (rect) {
-        setForkPosition({ x: rect.left + rect.width / 2, y: rect.top - 10 });
+        // Position at center top of selection
+        setForkPosition({ 
+          x: rect.left + (rect.width / 2), 
+          y: rect.top 
+        });
       }
     } else {
       setShowForkButton(false);
@@ -101,10 +105,11 @@ export const ConversationNode = memo((props: NodeProps) => {
       {/* Fork Button */}
       {showForkButton && (
         <div 
-          className="fixed z-50 animate-in fade-in duration-200 -translate-x-1/2 -translate-y-full"
+          className="fixed z-50 animate-in fade-in duration-200"
           style={{ 
             left: `${forkPosition.x}px`, 
-            top: `${forkPosition.y}px` 
+            top: `${forkPosition.y}px`,
+            transform: 'translate(-50%, calc(-100% - 8px))'
           }}
         >
           <Button
