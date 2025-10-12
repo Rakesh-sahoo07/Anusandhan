@@ -104,7 +104,7 @@ export const ConversationNode = memo((props: NodeProps) => {
   };
 
   return (
-    <div className="min-w-[380px] max-w-[420px] relative" onClick={(e) => e.stopPropagation()}>
+    <div className="min-w-[380px] max-w-[420px] relative pointer-events-auto" onClick={(e) => e.stopPropagation()}>
       <Handle type="target" position={Position.Top} className="!bg-white" />
       
       {/* Fork Button */}
@@ -114,18 +114,19 @@ export const ConversationNode = memo((props: NodeProps) => {
           style={{ 
             left: `${forkPosition.x}px`, 
             top: `${forkPosition.y}px`,
-            transform: 'translate(-50%, calc(-100% - 8px))'
+            transform: 'translate(-50%, calc(-100% - 8px))',
+            pointerEvents: 'auto'
           }}
-          onMouseDown={(e) => e.stopPropagation()}
         >
           <Button
             size="sm"
-            onMouseDown={(e) => {
+            onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              console.log("Fork button clicked!", { selectedText });
               handleFork();
             }}
-            className="bg-white text-black hover:bg-white/90 gap-1 shadow-lg"
+            className="bg-white text-black hover:bg-white/90 gap-1 shadow-lg pointer-events-auto"
           >
             <GitBranch className="w-3 h-3" />
             Fork
