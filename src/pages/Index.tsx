@@ -56,7 +56,7 @@ function FlowCanvas() {
 
     const nodeData: ConversationNodeData = {
       ...newConversationNode,
-      onBranch: (id: string) => handleBranch(id),
+      onBranch: (id: string, selectedText?: string) => handleBranch(id, selectedText),
       onExpand: (id: string) => handleExpand(id),
       onUpdateMessages: (id: string, msgs: Message[]) => {
         setConversationData((prev) => {
@@ -97,7 +97,7 @@ function FlowCanvas() {
     return nodeId;
   }, [setNodes, setEdges]);
 
-  const handleBranch = useCallback((nodeId: string) => {
+  const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
     const parentNode = conversationData.get(nodeId);
     if (!parentNode) return;
 
@@ -108,16 +108,61 @@ function FlowCanvas() {
 
     const newNodeId = createNewNode(nodeId, position);
     
-    // Copy parent messages to new node
-    const newConversationNode = conversationData.get(newNodeId);
-    if (newConversationNode) {
-      newConversationNode.messages = [...parentNode.messages];
-      setConversationData((prev) => new Map(prev).set(newNodeId, newConversationNode));
-      updateNodeData(newNodeId, newConversationNode);
-    }
+    // Set initial messages for new node
+    setTimeout(() => {
+      setConversationData((prev) => {
+        const newNode = prev.get(newNodeId);
+        if (!newNode) return prev;
+        
+        let initialMessages: Message[] = [];
+        
+        if (selectedText) {
+          // If text was selected, add it as the first user message
+          initialMessages = [{
+            id: `msg-${Date.now()}`,
+            role: "user",
+            content: selectedText,
+            timestamp: Date.now()
+          }];
+        } else {
+          // Otherwise copy parent messages
+          initialMessages = [...parentNode.messages];
+        }
+        
+        const updated = { ...newNode, messages: initialMessages };
+        const newMap = new Map(prev);
+        newMap.set(newNodeId, updated);
+        
+        // Update the node directly
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === newNodeId
+              ? {
+                  ...n,
+                  data: {
+                    ...updated,
+                    onBranch: (id: string, text?: string) => handleBranch(id, text),
+                    onExpand: handleExpand,
+                    onUpdateMessages: (id: string, msgs: Message[]) => {
+                      setConversationData((p) => {
+                        const node = p.get(id);
+                        if (!node) return p;
+                        const upd = { ...node, messages: msgs };
+                        return new Map(p).set(id, upd);
+                      });
+                    },
+                  },
+                }
+              : n
+          )
+        );
+        
+        return newMap;
+      });
+    }, 0);
 
-    toast.success("Created new branch");
-  }, [conversationData, createNewNode]);
+    toast.success(selectedText ? "Forked with selected text" : "Created new branch");
+  }, [conversationData, createNewNode, setNodes]);
 
   const handleExpand = useCallback((nodeId: string) => {
     const node = conversationData.get(nodeId);
@@ -134,7 +179,7 @@ function FlowCanvas() {
               ...node,
               data: {
                 ...updatedNode,
-                onBranch: (id: string) => handleBranch(id),
+                onBranch: (id: string, selectedText?: string) => handleBranch(id, selectedText),
                 onExpand: (id: string) => handleExpand(id),
                 onUpdateMessages: (id: string, msgs: Message[]) => {
                   setConversationData((prev) => {

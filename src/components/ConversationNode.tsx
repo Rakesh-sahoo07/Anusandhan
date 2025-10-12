@@ -15,7 +15,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   parentId: string | null;
   position: { x: number; y: number };
   createdAt: number;
-  onBranch: (nodeId: string) => void;
+  onBranch: (nodeId: string, selectedText?: string) => void;
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
 }
@@ -26,11 +26,42 @@ export const ConversationNode = memo((props: NodeProps) => {
   const messageCount = data.messages.filter((m: Message) => m.role !== "system").length;
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const [showForkButton, setShowForkButton] = useState(false);
+  const [forkPosition, setForkPosition] = useState({ x: 0, y: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data.messages]);
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+    
+    if (text && text.length > 0) {
+      setSelectedText(text);
+      setShowForkButton(true);
+      
+      const range = selection?.getRangeAt(0);
+      const rect = range?.getBoundingClientRect();
+      if (rect) {
+        setForkPosition({ x: rect.right, y: rect.bottom });
+      }
+    } else {
+      setShowForkButton(false);
+      setSelectedText("");
+    }
+  };
+
+  const handleFork = () => {
+    if (selectedText) {
+      data.onBranch(data.id, selectedText);
+      setShowForkButton(false);
+      setSelectedText("");
+      window.getSelection()?.removeAllRanges();
+    }
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,8 +95,28 @@ export const ConversationNode = memo((props: NodeProps) => {
   };
 
   return (
-    <div className="min-w-[380px] max-w-[420px]" onClick={(e) => e.stopPropagation()}>
+    <div className="min-w-[380px] max-w-[420px] relative" onClick={(e) => e.stopPropagation()}>
       <Handle type="target" position={Position.Top} className="!bg-white" />
+      
+      {/* Fork Button */}
+      {showForkButton && (
+        <div 
+          className="fixed z-50 animate-in fade-in duration-200"
+          style={{ 
+            left: `${forkPosition.x + 10}px`, 
+            top: `${forkPosition.y + 10}px` 
+          }}
+        >
+          <Button
+            size="sm"
+            onClick={handleFork}
+            className="bg-white text-black hover:bg-white/90 gap-1 shadow-lg"
+          >
+            <GitBranch className="w-3 h-3" />
+            Fork
+          </Button>
+        </div>
+      )}
       
       <div 
         className={cn(
@@ -97,7 +148,7 @@ export const ConversationNode = memo((props: NodeProps) => {
               className="h-7 px-2 gap-1 border-white/20 hover:bg-white/10 text-white"
               onClick={(e) => {
                 e.stopPropagation();
-                data.onBranch(data.id);
+                data.onBranch(data.id, "");
               }}
             >
               <GitBranch className="w-3 h-3" />
@@ -139,7 +190,10 @@ export const ConversationNode = memo((props: NodeProps) => {
                         <div className="h-px bg-white/10 w-full" />
                       </>
                     ) : (
-                      <div className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed">
+                      <div 
+                        className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed select-text cursor-text"
+                        onMouseUp={handleTextSelection}
+                      >
                         {message.content}
                       </div>
                     )}
