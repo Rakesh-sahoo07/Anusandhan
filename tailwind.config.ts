@@ -47,16 +47,31 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+        canvas: {
+          background: "hsl(var(--canvas-background))",
+          grid: "hsl(var(--canvas-grid))",
         },
+        node: {
+          background: "hsl(var(--node-background))",
+          border: "hsl(var(--node-border))",
+        },
+        model: {
+          llama: "hsl(var(--model-llama))",
+          mistral: "hsl(var(--model-mistral))",
+          mixtral: "hsl(var(--model-mixtral))",
+          gemma: "hsl(var(--model-gemma))",
+        },
+      },
+      backgroundImage: {
+        'gradient-primary': 'var(--gradient-primary)',
+        'gradient-node': 'var(--gradient-node)',
+      },
+      boxShadow: {
+        'node': 'var(--shadow-node)',
+        'glow': 'var(--shadow-glow)',
+      },
+      transitionProperty: {
+        'smooth': 'var(--transition-smooth)',
       },
       borderRadius: {
         lg: "var(--radius)",
