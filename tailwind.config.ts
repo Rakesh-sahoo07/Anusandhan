@@ -60,6 +60,7 @@ export default {
           mistral: "hsl(var(--model-mistral))",
           mixtral: "hsl(var(--model-mixtral))",
           gemma: "hsl(var(--model-gemma))",
+          openai: "hsl(var(--model-openai))",
         },
       },
       backgroundImage: {
@@ -102,5 +103,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

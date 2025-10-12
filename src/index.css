@@ -43,6 +43,7 @@ All colors MUST be HSL.
     --model-mistral: 210 100% 60%;
     --model-mixtral: 25 95% 60%;
     --model-gemma: 160 80% 50%;
+    --model-openai: 180 90% 55%;
 
     /* Canvas colors */
     --canvas-background: 220 15% 6%;

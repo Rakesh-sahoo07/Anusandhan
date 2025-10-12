@@ -7,6 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { X, Download, Copy, GripVertical, Trash2, Pencil, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatPanelProps {
   node: ConversationNode | null;
@@ -210,7 +212,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {node.messages.filter(m => m.role !== "system").length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-muted-foreground">
@@ -235,7 +237,15 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
                     : "bg-secondary/50 text-secondary-foreground border border-white/10"
                 )}
               >
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                {message.role === "assistant" ? (
+                  <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-code:text-primary">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                )}
                 <div className="text-xs opacity-50 mt-2">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </div>
