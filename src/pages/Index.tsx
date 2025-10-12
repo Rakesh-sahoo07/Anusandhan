@@ -142,6 +142,7 @@ function FlowCanvas() {
               data: {
                 ...node.data,
                 ...updatedNode,
+                initialInput: undefined, // Clear initialInput after messages are added
                 onBranch: node.data.onBranch,
                 onExpand: node.data.onExpand,
                 onUpdateMessages: node.data.onUpdateMessages,

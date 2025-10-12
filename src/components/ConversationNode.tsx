@@ -94,6 +94,7 @@ export const ConversationNode = memo((props: NodeProps) => {
 
     const updatedMessages = [...data.messages, userMessage];
     data.onUpdateMessages(data.id, updatedMessages);
+    toast.success(`Message sent: ${input.trim().substring(0, 30)}...`);
     setInput("");
     setIsLoading(true);
 
