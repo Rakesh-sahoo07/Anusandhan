@@ -37,7 +37,7 @@ function FlowCanvas() {
     }
   }, []);
 
-  const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[]) => {
+  const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[], initialInput?: string) => {
     const nodeId = `node-${Date.now()}`;
     
     setConversationData((prev) => {
@@ -55,6 +55,7 @@ function FlowCanvas() {
 
     const nodeData: ConversationNodeData = {
       ...newConversationNode,
+      initialInput,
       onBranch: (id: string, selectedText?: string) => {
         handleBranch(id, selectedText);
       },
@@ -114,18 +115,11 @@ function FlowCanvas() {
 
       let initialMessages: Message[] = [];
       
-      if (selectedText) {
-        initialMessages = [{
-          id: `msg-${Date.now()}`,
-          role: "user",
-          content: selectedText,
-          timestamp: Date.now()
-        }];
-      } else {
+      if (!selectedText) {
         initialMessages = [...parentNode.messages];
       }
 
-      createNewNode(nodeId, position, initialMessages);
+      createNewNode(nodeId, position, initialMessages, selectedText);
       toast.success(selectedText ? "Forked with selected text" : "Created new branch");
       
       return prev;

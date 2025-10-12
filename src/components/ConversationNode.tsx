@@ -16,6 +16,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   parentId: string | null;
   position: { x: number; y: number };
   createdAt: number;
+  initialInput?: string;
   onBranch: (nodeId: string, selectedText?: string) => void;
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
@@ -25,7 +26,7 @@ export const ConversationNode = memo((props: NodeProps) => {
   const data = props.data as ConversationNodeData;
   const modelInfo = getModelInfo(data.model);
   const messageCount = data.messages.filter((m: Message) => m.role !== "system").length;
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(data.initialInput || "");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [showForkButton, setShowForkButton] = useState(false);
