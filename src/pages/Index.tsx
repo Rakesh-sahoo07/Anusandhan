@@ -100,9 +100,14 @@ function FlowCanvas() {
 
   const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
     console.log("handleBranch called", { nodeId, selectedText });
+    console.log("conversationData size:", conversationData.size);
+    console.log("conversationData has nodeId:", conversationData.has(nodeId));
+    
     const parentNode = conversationData.get(nodeId);
     if (!parentNode) {
-      console.log("Parent node not found");
+      console.log("Parent node not found for id:", nodeId);
+      console.log("Available node ids:", Array.from(conversationData.keys()));
+      toast.error("Parent node not found");
       return;
     }
 
@@ -128,6 +133,7 @@ function FlowCanvas() {
       console.log("Creating branch with copied messages");
     }
 
+    console.log("Calling createNewNode with:", { nodeId, position, initialMessages });
     createNewNode(nodeId, position, initialMessages);
 
     toast.success(selectedText ? "Forked with selected text" : "Created new branch");
@@ -147,26 +153,17 @@ function FlowCanvas() {
           ? {
               ...node,
               data: {
+                ...node.data,
                 ...updatedNode,
-                onBranch: (id: string, selectedText?: string) => handleBranch(id, selectedText),
-                onExpand: (id: string) => handleExpand(id),
-                onUpdateMessages: (id: string, msgs: Message[]) => {
-                  setConversationData((prev) => {
-                    const n = prev.get(id);
-                    if (!n) return prev;
-                    const upd = { ...n, messages: msgs };
-                    const newMap = new Map(prev);
-                    newMap.set(id, upd);
-                    updateNodeData(id, upd);
-                    return newMap;
-                  });
-                },
+                onBranch: node.data.onBranch,
+                onExpand: node.data.onExpand,
+                onUpdateMessages: node.data.onUpdateMessages,
               },
             }
           : node
       )
     );
-  }, [setNodes, handleBranch, handleExpand]);
+  }, [setNodes]);
 
   const handleUpdateNode = useCallback((nodeId: string, messages: Message[]) => {
     setConversationData((prev) => {
