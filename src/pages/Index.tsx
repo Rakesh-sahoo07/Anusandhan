@@ -38,6 +38,7 @@ function FlowCanvas() {
   }, []);
 
   const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[]) => {
+    toast.info("createNewNode called");
     const nodeId = `node-${Date.now()}`;
     
     setConversationData((prev) => {
@@ -57,7 +58,7 @@ function FlowCanvas() {
     const nodeData: ConversationNodeData = {
       ...newConversationNode,
       onBranch: (id: string, selectedText?: string) => {
-        console.log("onBranch callback triggered:", { id, selectedText });
+        toast.info(`onBranch callback triggered: ${id}`);
         handleBranch(id, selectedText);
       },
       onExpand: (id: string) => handleExpand(id),
@@ -82,9 +83,11 @@ function FlowCanvas() {
         dragHandle: ".drag-handle",
       };
 
+      toast.info("Adding new node to canvas");
       setNodes((nds) => [...nds, newNode]);
 
       if (parentId) {
+        toast.info("Creating edge connection");
         const newEdge: Edge = {
           id: `edge-${parentId}-${nodeId}`,
           source: parentId,
@@ -95,6 +98,7 @@ function FlowCanvas() {
         setEdges((eds) => [...eds, newEdge]);
       }
       
+      toast.success("New node created successfully!");
       return new Map(prev).set(nodeId, newConversationNode);
     });
 
@@ -102,18 +106,15 @@ function FlowCanvas() {
   }, [setNodes, setEdges]);
 
   const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
-    console.log("handleBranch called", { nodeId, selectedText });
-    console.log("conversationData size:", conversationData.size);
-    console.log("conversationData has nodeId:", conversationData.has(nodeId));
+    toast.info("handleBranch started");
     
     const parentNode = conversationData.get(nodeId);
     if (!parentNode) {
-      console.log("Parent node not found for id:", nodeId);
-      console.log("Available node ids:", Array.from(conversationData.keys()));
-      toast.error("Parent node not found");
+      toast.error(`Parent node not found: ${nodeId}`);
       return;
     }
 
+    toast.info("Parent node found, creating position");
     const position = {
       x: parentNode.position.x + 450,
       y: parentNode.position.y + (Math.random() - 0.5) * 200,
@@ -122,21 +123,19 @@ function FlowCanvas() {
     let initialMessages: Message[] = [];
     
     if (selectedText) {
-      // If text was selected, add it as the first user message
       initialMessages = [{
         id: `msg-${Date.now()}`,
         role: "user",
         content: selectedText,
         timestamp: Date.now()
       }];
-      console.log("Creating fork with selected text:", selectedText);
+      toast.info(`Fork with text: ${selectedText.substring(0, 20)}...`);
     } else {
-      // Otherwise copy parent messages
       initialMessages = [...parentNode.messages];
-      console.log("Creating branch with copied messages");
+      toast.info("Branch with copied messages");
     }
 
-    console.log("Calling createNewNode with:", { nodeId, position, initialMessages });
+    toast.info("Calling createNewNode");
     createNewNode(nodeId, position, initialMessages);
 
     toast.success(selectedText ? "Forked with selected text" : "Created new branch");

@@ -60,21 +60,18 @@ export const ConversationNode = memo((props: NodeProps) => {
   };
 
   const handleFork = () => {
-    console.log("Fork clicked", { selectedText, nodeId: data.id });
-    console.log("data.onBranch exists:", typeof data.onBranch);
+    toast.info(`Fork clicked - Text: ${selectedText?.substring(0, 20)}...`);
     if (selectedText) {
-      toast.info("Attempting to fork...");
+      toast.info("Calling onBranch...");
       try {
         data.onBranch(data.id, selectedText);
         toast.success("Fork callback executed");
       } catch (error) {
-        console.error("Fork error:", error);
         toast.error("Fork failed: " + error);
       }
       setShowForkButton(false);
       setSelectedText("");
       
-      // Clear selection after a brief delay to ensure fork completes
       setTimeout(() => {
         window.getSelection()?.removeAllRanges();
       }, 100);
@@ -134,7 +131,6 @@ export const ConversationNode = memo((props: NodeProps) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log("Fork button clicked!", { selectedText });
               handleFork();
             }}
             className="bg-white text-black hover:bg-white/90 gap-1 shadow-lg pointer-events-auto"
