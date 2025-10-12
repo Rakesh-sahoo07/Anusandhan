@@ -2,7 +2,9 @@ export type AIModel =
   | "llama-3.3-70b-versatile"
   | "llama-3.1-8b-instant"
   | "mixtral-8x7b-32768"
-  | "gemma-7b-it";
+  | "gemma-7b-it"
+  | "openai/gpt-oss-120b"
+  | "openai/gpt-oss-20b";
 
 export interface Message {
   id: string;

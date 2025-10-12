@@ -280,8 +280,25 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
                   <ChevronDown className="w-3 h-3 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[240px]">
-                {AI_MODELS.map((model) => (
+              <DropdownMenuContent align="start" className="w-[280px]">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Groq</div>
+                {AI_MODELS.filter(m => m.provider === "groq").map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => onChangeModel(node.id, model.id)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className={cn("w-2 h-2 rounded-full", `bg-${model.color}`)} />
+                      <div className="flex-1">
+                        <div className="font-medium">{model.name}</div>
+                        <div className="text-xs text-muted-foreground">{model.description}</div>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">OpenAI</div>
+                {AI_MODELS.filter(m => m.provider === "openai").map((model) => (
                   <DropdownMenuItem
                     key={model.id}
                     onClick={() => onChangeModel(node.id, model.id)}
