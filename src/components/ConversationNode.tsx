@@ -97,6 +97,7 @@ export const ConversationNode = (props: NodeProps) => {
     };
 
     const updatedMessages = [...data.messages, userMessage];
+    toast.info(`Calling onUpdateMessages for ${data.id.substring(5, 9)} with ${updatedMessages.length} messages`);
     data.onUpdateMessages(data.id, updatedMessages);
     setInput("");
     setIsLoading(true);

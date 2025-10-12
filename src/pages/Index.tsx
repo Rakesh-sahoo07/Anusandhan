@@ -61,12 +61,18 @@ function FlowCanvas() {
       },
       onExpand: (id: string) => handleExpand(id),
       onUpdateMessages: (id: string, msgs: Message[]) => {
+        toast.info(`onUpdateMessages called for ${id.substring(5, 9)}, ${msgs.length} messages`);
         setConversationData((prev) => {
           const node = prev.get(id);
-          if (!node) return prev;
+          if (!node) {
+            toast.error(`Node ${id.substring(5, 9)} not found in conversationData`);
+            return prev;
+          }
           const updated = { ...node, messages: msgs };
           const newMap = new Map(prev);
           newMap.set(id, updated);
+          
+          toast.success(`Updated conversationData for ${id.substring(5, 9)}`);
           
           // Force complete node data refresh with new object reference
           setNodes((nds) =>
