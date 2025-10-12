@@ -131,6 +131,7 @@ function FlowCanvas() {
           },
           onUpdateMessages: handleUpdateMessages,
           onChangeModel: handleChangeModel,
+          onUpdateTitle: handleUpdateTitle,
         };
 
         const newNode: Node = {
@@ -179,6 +180,7 @@ function FlowCanvas() {
                 onBranch: node.data.onBranch,
                 onExpand: node.data.onExpand,
                 onUpdateMessages: node.data.onUpdateMessages,
+                onUpdateTitle: node.data.onUpdateTitle,
               },
             }
           : node

@@ -28,6 +28,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
   onChangeModel?: (nodeId: string, model: AIModel) => void;
+  onUpdateTitle?: (nodeId: string, title: string) => void;
 }
 
 export const ConversationNode = (props: NodeProps) => {
@@ -39,8 +40,11 @@ export const ConversationNode = (props: NodeProps) => {
   const [selectedText, setSelectedText] = useState("");
   const [showForkButton, setShowForkButton] = useState(false);
   const [forkPosition, setForkPosition] = useState({ x: 0, y: 0 });
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(data.title);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,6 +62,34 @@ export const ConversationNode = (props: NodeProps) => {
       setInput(data.initialInput);
     }
   }, [data.initialInput]);
+
+  // Focus title input when editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  const handleTitleSave = () => {
+    const trimmedTitle = editedTitle.trim();
+    if (trimmedTitle && trimmedTitle !== data.title) {
+      data.onUpdateTitle?.(data.id, trimmedTitle);
+    } else {
+      setEditedTitle(data.title);
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setEditedTitle(data.title);
+      setIsEditingTitle(false);
+    }
+  };
 
   const handleTextSelection = (e: React.MouseEvent) => {
     const selection = window.getSelection();
@@ -217,9 +249,24 @@ export const ConversationNode = (props: NodeProps) => {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="w-2 h-2 rounded-full bg-white flex-shrink-0" />
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="font-semibold text-sm text-white truncate">
-                {data.title}
-              </span>
+              {isEditingTitle ? (
+                <Input
+                  ref={titleInputRef}
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={handleTitleKeyDown}
+                  className="h-6 px-1 py-0 text-sm font-semibold bg-white/10 border-white/20 text-white"
+                />
+              ) : (
+                <span 
+                  className="font-semibold text-sm text-white truncate cursor-pointer hover:text-white/80"
+                  onClick={() => setIsEditingTitle(true)}
+                  title="Click to edit"
+                >
+                  {data.title}
+                </span>
+              )}
               <Select 
                 value={data.model} 
                 onValueChange={(value) => data.onChangeModel?.(data.id, value as AIModel)}
