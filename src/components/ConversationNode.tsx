@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export interface ConversationNodeData extends Record<string, unknown> {
   id: string;
@@ -60,8 +61,16 @@ export const ConversationNode = memo((props: NodeProps) => {
 
   const handleFork = () => {
     console.log("Fork clicked", { selectedText, nodeId: data.id });
+    console.log("data.onBranch exists:", typeof data.onBranch);
     if (selectedText) {
-      data.onBranch(data.id, selectedText);
+      toast.info("Attempting to fork...");
+      try {
+        data.onBranch(data.id, selectedText);
+        toast.success("Fork callback executed");
+      } catch (error) {
+        console.error("Fork error:", error);
+        toast.error("Fork failed: " + error);
+      }
       setShowForkButton(false);
       setSelectedText("");
       
@@ -69,6 +78,8 @@ export const ConversationNode = memo((props: NodeProps) => {
       setTimeout(() => {
         window.getSelection()?.removeAllRanges();
       }, 100);
+    } else {
+      toast.error("No text selected");
     }
   };
 
