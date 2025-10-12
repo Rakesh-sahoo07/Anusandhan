@@ -35,6 +35,10 @@ export const ConversationNode = memo((props: NodeProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    toast.info(`Node ${data.id.substring(5, 9)} has ${data.messages.length} messages`);
+  }, [data.messages, data.id]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data.messages]);
 
