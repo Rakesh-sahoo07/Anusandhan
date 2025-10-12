@@ -211,21 +211,21 @@ function FlowCanvas() {
   );
 
   return (
-    <div className="h-screen w-screen bg-canvas-background">
+    <div className="h-screen w-screen bg-black">
       {/* Toolbar */}
       <div className="absolute top-4 left-4 z-10 flex gap-2">
         <Button
           onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 })}
-          className="gap-2 shadow-glow"
+          className="gap-2 bg-white text-black hover:bg-white/90"
         >
           <Plus className="w-4 h-4" />
           New Conversation
         </Button>
-        <Button variant="outline" onClick={handleExportAll} className="gap-2">
+        <Button variant="outline" onClick={handleExportAll} className="gap-2 border-white/20 text-white hover:bg-white/10">
           <Download className="w-4 h-4" />
           Export
         </Button>
-        <Button variant="outline" onClick={handleImport} className="gap-2">
+        <Button variant="outline" onClick={handleImport} className="gap-2 border-white/20 text-white hover:bg-white/10">
           <Upload className="w-4 h-4" />
           Import
         </Button>
@@ -240,13 +240,14 @@ function FlowCanvas() {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-canvas-background"
+        className="bg-black"
       >
-        <Background color="hsl(var(--canvas-grid))" gap={20} size={1} />
-        <Controls className="bg-card border-border" />
+        <Background color="#333333" gap={20} size={1} />
+        <Controls className="bg-[#1a1a1a] border-white/10" />
         <MiniMap
-          className="bg-card border-border"
-          nodeColor={(node) => "hsl(var(--primary))"}
+          className="bg-[#1a1a1a] border-white/10"
+          nodeColor={() => "#ffffff"}
+          maskColor="rgba(0, 0, 0, 0.6)"
         />
       </ReactFlow>
 
