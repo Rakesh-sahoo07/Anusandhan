@@ -38,11 +38,9 @@ function FlowCanvas() {
   }, []);
 
   const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[]) => {
-    toast.info("createNewNode called");
     const nodeId = `node-${Date.now()}`;
     
     setConversationData((prev) => {
-      // Count existing nodes to generate sequential title
       const nodeCount = prev.size + 1;
       
       const newConversationNode: ConversationNodeType = {
@@ -58,7 +56,6 @@ function FlowCanvas() {
     const nodeData: ConversationNodeData = {
       ...newConversationNode,
       onBranch: (id: string, selectedText?: string) => {
-        toast.info(`onBranch callback triggered: ${id}`);
         handleBranch(id, selectedText);
       },
       onExpand: (id: string) => handleExpand(id),
@@ -83,11 +80,9 @@ function FlowCanvas() {
         dragHandle: ".drag-handle",
       };
 
-      toast.info("Adding new node to canvas");
       setNodes((nds) => [...nds, newNode]);
 
       if (parentId) {
-        toast.info("Creating edge connection");
         const newEdge: Edge = {
           id: `edge-${parentId}-${nodeId}`,
           source: parentId,
@@ -98,7 +93,6 @@ function FlowCanvas() {
         setEdges((eds) => [...eds, newEdge]);
       }
       
-      toast.success("New node created successfully!");
       return new Map(prev).set(nodeId, newConversationNode);
     });
 
@@ -106,40 +100,37 @@ function FlowCanvas() {
   }, [setNodes, setEdges]);
 
   const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
-    toast.info("handleBranch started");
-    
-    const parentNode = conversationData.get(nodeId);
-    if (!parentNode) {
-      toast.error(`Parent node not found: ${nodeId}`);
-      return;
-    }
+    setConversationData((prev) => {
+      const parentNode = prev.get(nodeId);
+      if (!parentNode) {
+        toast.error(`Parent node not found: ${nodeId}`);
+        return prev;
+      }
 
-    toast.info("Parent node found, creating position");
-    const position = {
-      x: parentNode.position.x + 450,
-      y: parentNode.position.y + (Math.random() - 0.5) * 200,
-    };
+      const position = {
+        x: parentNode.position.x + 450,
+        y: parentNode.position.y + (Math.random() - 0.5) * 200,
+      };
 
-    let initialMessages: Message[] = [];
-    
-    if (selectedText) {
-      initialMessages = [{
-        id: `msg-${Date.now()}`,
-        role: "user",
-        content: selectedText,
-        timestamp: Date.now()
-      }];
-      toast.info(`Fork with text: ${selectedText.substring(0, 20)}...`);
-    } else {
-      initialMessages = [...parentNode.messages];
-      toast.info("Branch with copied messages");
-    }
+      let initialMessages: Message[] = [];
+      
+      if (selectedText) {
+        initialMessages = [{
+          id: `msg-${Date.now()}`,
+          role: "user",
+          content: selectedText,
+          timestamp: Date.now()
+        }];
+      } else {
+        initialMessages = [...parentNode.messages];
+      }
 
-    toast.info("Calling createNewNode");
-    createNewNode(nodeId, position, initialMessages);
-
-    toast.success(selectedText ? "Forked with selected text" : "Created new branch");
-  }, [conversationData, createNewNode]);
+      createNewNode(nodeId, position, initialMessages);
+      toast.success(selectedText ? "Forked with selected text" : "Created new branch");
+      
+      return prev;
+    });
+  }, [createNewNode]);
 
   const handleExpand = useCallback((nodeId: string) => {
     const node = conversationData.get(nodeId);

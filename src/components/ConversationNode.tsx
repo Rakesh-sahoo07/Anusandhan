@@ -60,23 +60,14 @@ export const ConversationNode = memo((props: NodeProps) => {
   };
 
   const handleFork = () => {
-    toast.info(`Fork clicked - Text: ${selectedText?.substring(0, 20)}...`);
     if (selectedText) {
-      toast.info("Calling onBranch...");
-      try {
-        data.onBranch(data.id, selectedText);
-        toast.success("Fork callback executed");
-      } catch (error) {
-        toast.error("Fork failed: " + error);
-      }
+      data.onBranch(data.id, selectedText);
       setShowForkButton(false);
       setSelectedText("");
       
       setTimeout(() => {
         window.getSelection()?.removeAllRanges();
       }, 100);
-    } else {
-      toast.error("No text selected");
     }
   };
 
