@@ -157,7 +157,7 @@ export const ConversationNode = memo((props: NodeProps) => {
         </div>
 
         {/* Conversation Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {data.messages.filter((m: Message) => m.role !== "system").length === 0 ? (
             <div className="flex flex-col h-full">
               <Input
@@ -192,7 +192,6 @@ export const ConversationNode = memo((props: NodeProps) => {
                     ) : (
                       <div 
                         className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed select-text cursor-text"
-                        onMouseDown={(e) => e.stopPropagation()}
                         onMouseUp={handleTextSelection}
                       >
                         {message.content}
