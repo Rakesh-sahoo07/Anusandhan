@@ -93,7 +93,6 @@ export const ConversationNode = memo((props: NodeProps) => {
     };
 
     const updatedMessages = [...data.messages, userMessage];
-    toast.info(`Current messages: ${data.messages.length}, After: ${updatedMessages.length}`);
     data.onUpdateMessages(data.id, updatedMessages);
     setInput("");
     setIsLoading(true);

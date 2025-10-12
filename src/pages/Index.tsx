@@ -67,7 +67,25 @@ function FlowCanvas() {
           const updated = { ...node, messages: msgs };
           const newMap = new Map(prev);
           newMap.set(id, updated);
-          updateNodeData(id, updated);
+          
+          // Force node data update
+          setNodes((nds) =>
+            nds.map((n) =>
+              n.id === id
+                ? {
+                    ...n,
+                    data: {
+                      ...updated,
+                      initialInput: undefined,
+                      onBranch: n.data.onBranch,
+                      onExpand: n.data.onExpand,
+                      onUpdateMessages: n.data.onUpdateMessages,
+                    },
+                  }
+                : n
+            )
+          );
+          
           return newMap;
         });
       },
