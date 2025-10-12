@@ -192,6 +192,7 @@ export const ConversationNode = memo((props: NodeProps) => {
                     ) : (
                       <div 
                         className="text-white/80 text-sm whitespace-pre-wrap break-words leading-relaxed select-text cursor-text"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onMouseUp={handleTextSelection}
                       >
                         {message.content}
