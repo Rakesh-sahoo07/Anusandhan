@@ -32,10 +32,17 @@ export const ConversationNode = memo((props: NodeProps) => {
   const [showForkButton, setShowForkButton] = useState(false);
   const [forkPosition, setForkPosition] = useState({ x: 0, y: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data.messages]);
+
+  useEffect(() => {
+    if (!isLoading && data.messages.length > 0) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading, data.messages.length]);
 
   const handleTextSelection = (e: React.MouseEvent) => {
     const selection = window.getSelection();
@@ -176,6 +183,7 @@ export const ConversationNode = memo((props: NodeProps) => {
           {data.messages.filter((m: Message) => m.role !== "system").length === 0 ? (
             <div className="flex flex-col h-full">
               <Input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -187,6 +195,7 @@ export const ConversationNode = memo((props: NodeProps) => {
                 placeholder="Ask a question..."
                 className="bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-base h-auto"
                 disabled={isLoading}
+                autoFocus
               />
             </div>
           ) : (
@@ -217,6 +226,7 @@ export const ConversationNode = memo((props: NodeProps) => {
                     {isLastMessage && !isLoading && (
                       <div className="pt-2">
                         <Input
+                          ref={inputRef}
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={(e) => {
@@ -228,6 +238,7 @@ export const ConversationNode = memo((props: NodeProps) => {
                           placeholder="Ask a question..."
                           className="bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-base h-auto"
                           disabled={isLoading}
+                          autoFocus
                         />
                       </div>
                     )}
