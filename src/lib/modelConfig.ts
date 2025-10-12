@@ -15,22 +15,10 @@ export const AI_MODELS: ModelInfo[] = [
     description: "Most capable Llama model"
   },
   {
-    id: "llama-3.1-70b-versatile",
-    name: "Llama 3.1 70B",
-    color: "model-llama",
-    description: "Powerful reasoning and comprehension"
-  },
-  {
     id: "llama-3.1-8b-instant",
     name: "Llama 3.1 8B",
     color: "model-llama",
     description: "Fast and efficient"
-  },
-  {
-    id: "llama-3-8b",
-    name: "Llama 3 8B",
-    color: "model-llama",
-    description: "Balanced speed and capability"
   },
   {
     id: "mixtral-8x7b-32768",
@@ -39,8 +27,8 @@ export const AI_MODELS: ModelInfo[] = [
     description: "Expert mixture model"
   },
   {
-    id: "gemma2-9b-it",
-    name: "Gemma 2 9B",
+    id: "gemma-7b-it",
+    name: "Gemma 7B",
     color: "model-gemma",
     description: "Lightweight and efficient"
   }
