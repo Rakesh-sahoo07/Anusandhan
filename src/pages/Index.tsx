@@ -296,11 +296,11 @@ function FlowCanvas() {
         className="bg-black"
       >
         <Background color="#333333" gap={20} size={1} />
-        <Controls className="bg-[#1a1a1a] border-white/10" />
-        <MiniMap
-          className="bg-[#1a1a1a] border-white/10"
-          nodeColor={() => "#ffffff"}
-          maskColor="rgba(0, 0, 0, 0.6)"
+        <Controls 
+          className="!bg-transparent border-none [&_button]:!bg-white/10 [&_button]:!border-white/20 [&_button]:hover:!bg-white/20 [&_button_svg]:!fill-white [&_button]:!text-white"
+          showZoom={true}
+          showFitView={true}
+          showInteractive={true}
         />
       </ReactFlow>
 
