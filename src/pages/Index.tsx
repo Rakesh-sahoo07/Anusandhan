@@ -33,11 +33,11 @@ function FlowCanvas() {
   useEffect(() => {
     // Initialize with first node
     if (nodes.length === 0) {
-      createNewNode(null, { x: 250, y: 100 });
+      createNewNode(null, { x: 250, y: 100 }, []);
     }
   }, []);
 
-  const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }) => {
+  const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[]) => {
     const nodeId = `node-${Date.now()}`;
     
     setConversationData((prev) => {
@@ -48,7 +48,7 @@ function FlowCanvas() {
         id: nodeId,
         model: "llama-3-8b",
         title: `untitled${nodeCount}`,
-        messages: [],
+        messages: initialMessages || [],
         parentId,
         position,
         createdAt: Date.now(),
@@ -87,7 +87,7 @@ function FlowCanvas() {
           source: parentId,
           target: nodeId,
           animated: true,
-          style: { stroke: "hsl(var(--primary))", strokeWidth: 2 },
+          style: { stroke: "#ffffff", strokeWidth: 2 },
         };
         setEdges((eds) => [...eds, newEdge]);
       }
@@ -107,63 +107,25 @@ function FlowCanvas() {
       y: parentNode.position.y + (Math.random() - 0.5) * 200,
     };
 
-    const newNodeId = createNewNode(nodeId, position);
+    let initialMessages: Message[] = [];
     
-    // Set initial messages for new node
-    setTimeout(() => {
-      setConversationData((prev) => {
-        const newNode = prev.get(newNodeId);
-        if (!newNode) return prev;
-        
-        let initialMessages: Message[] = [];
-        
-        if (selectedText) {
-          // If text was selected, add it as the first user message
-          initialMessages = [{
-            id: `msg-${Date.now()}`,
-            role: "user",
-            content: selectedText,
-            timestamp: Date.now()
-          }];
-        } else {
-          // Otherwise copy parent messages
-          initialMessages = [...parentNode.messages];
-        }
-        
-        const updated = { ...newNode, messages: initialMessages };
-        const newMap = new Map(prev);
-        newMap.set(newNodeId, updated);
-        
-        // Update the node directly
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === newNodeId
-              ? {
-                  ...n,
-                  data: {
-                    ...updated,
-                    onBranch: (id: string, text?: string) => handleBranch(id, text),
-                    onExpand: handleExpand,
-                    onUpdateMessages: (id: string, msgs: Message[]) => {
-                      setConversationData((p) => {
-                        const node = p.get(id);
-                        if (!node) return p;
-                        const upd = { ...node, messages: msgs };
-                        return new Map(p).set(id, upd);
-                      });
-                    },
-                  },
-                }
-              : n
-          )
-        );
-        
-        return newMap;
-      });
-    }, 0);
+    if (selectedText) {
+      // If text was selected, add it as the first user message
+      initialMessages = [{
+        id: `msg-${Date.now()}`,
+        role: "user",
+        content: selectedText,
+        timestamp: Date.now()
+      }];
+    } else {
+      // Otherwise copy parent messages
+      initialMessages = [...parentNode.messages];
+    }
+
+    createNewNode(nodeId, position, initialMessages);
 
     toast.success(selectedText ? "Forked with selected text" : "Created new branch");
-  }, [conversationData, createNewNode, setNodes]);
+  }, [conversationData, createNewNode]);
 
   const handleExpand = useCallback((nodeId: string) => {
     const node = conversationData.get(nodeId);
@@ -283,7 +245,7 @@ function FlowCanvas() {
       {/* Toolbar */}
       <div className="absolute top-4 left-4 z-10 flex gap-2">
         <Button
-          onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 })}
+          onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 }, [])}
           className="gap-2 bg-white text-black hover:bg-white/90"
         >
           <Plus className="w-4 h-4" />
