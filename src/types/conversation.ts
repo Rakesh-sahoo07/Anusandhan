@@ -18,6 +18,7 @@ export interface Attachment {
 export interface ConversationNode {
   id: string;
   model: AIModel;
+  title: string;
   messages: Message[];
   parentId: string | null;
   position: { x: number; y: number };

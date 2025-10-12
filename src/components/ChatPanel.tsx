@@ -3,8 +3,8 @@ import { ConversationNode, Message, AIModel } from "@/types/conversation";
 import { getModelInfo, AI_MODELS } from "@/lib/modelConfig";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Send, Paperclip, Download, Copy } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { X, Download, Copy, GripVertical, Trash2, Pencil, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -13,12 +13,29 @@ interface ChatPanelProps {
   onClose: () => void;
   onUpdateNode: (nodeId: string, messages: Message[]) => void;
   onChangeModel: (nodeId: string, model: AIModel) => void;
+  onUpdateTitle?: (nodeId: string, title: string) => void;
 }
 
-export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel }: ChatPanelProps) {
+export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdateTitle }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (node) {
+      setTitle(node.title || "untitled");
+    }
+  }, [node?.id]);
+
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,68 +96,105 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel }: ChatPa
     toast.success("Conversation copied to clipboard");
   };
 
+  const handleTitleSave = () => {
+    if (node && title.trim() && onUpdateTitle) {
+      onUpdateTitle(node.id, title.trim());
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setTitle(node?.title || "untitled");
+      setIsEditingTitle(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-y-0 left-0 w-[500px] bg-card border-r border-border shadow-2xl flex flex-col z-50">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-node">
-        <div className="flex items-center gap-3">
-          <Select value={node.model} onValueChange={(value) => onChangeModel(node.id, value as AIModel)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {AI_MODELS.map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", `bg-${model.color}`)} />
-                    {model.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className="fixed inset-y-0 left-0 w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl">
+      {/* Header - Draggable */}
+      <div className="group flex items-center justify-between p-4 border-b border-white/10 cursor-move hover:bg-white/5 transition-colors">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="opacity-0 group-hover:opacity-40 transition-opacity">
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </div>
+          
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              className="bg-transparent border-none outline-none text-lg font-medium text-foreground px-2 -mx-2 rounded focus:bg-white/5"
+            />
+          ) : (
+            <button
+              onClick={() => setIsEditingTitle(true)}
+              className="text-lg font-medium text-foreground hover:text-primary transition-colors flex items-center gap-2 group/title"
+            >
+              {title}
+              <Pencil className="w-3 h-3 opacity-0 group-hover/title:opacity-50 transition-opacity" />
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={handleCopy}>
-            <Copy className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleExport}>
+        
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10" onClick={handleExport}>
             <Download className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10" onClick={handleCopy}>
+            <Copy className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10" onClick={onClose}>
             <X className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10 text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {node.messages.filter(m => m.role !== "system").map((message) => (
-          <div
-            key={message.id}
-            className={cn(
-              "flex",
-              message.role === "user" ? "justify-end" : "justify-start"
-            )}
-          >
-            <div
-              className={cn(
-                "max-w-[80%] rounded-lg p-3",
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground"
-              )}
-            >
-              <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-              <div className="text-xs opacity-50 mt-1">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </div>
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {node.messages.filter(m => m.role !== "system").length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-muted-foreground">
+              <p className="text-lg mb-2">Start a conversation</p>
+              <p className="text-sm opacity-60">Ask a question to begin...</p>
             </div>
           </div>
-        ))}
+        ) : (
+          node.messages.filter(m => m.role !== "system").map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex",
+                message.role === "user" ? "justify-end" : "justify-start"
+              )}
+            >
+              <div
+                className={cn(
+                  "max-w-[85%] rounded-2xl px-4 py-3",
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/50 text-secondary-foreground border border-white/10"
+                )}
+              >
+                <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                <div className="text-xs opacity-50 mt-2">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-secondary text-secondary-foreground rounded-lg p-3">
+            <div className="bg-secondary/50 border border-white/10 rounded-2xl px-4 py-3">
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                 <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -153,11 +207,8 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel }: ChatPa
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-border bg-gradient-node">
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <Paperclip className="w-4 h-4" />
-          </Button>
+      <div className="p-4 border-t border-white/10">
+        <div className="bg-[#2a2a2a] rounded-2xl border border-white/10 overflow-hidden">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -168,15 +219,44 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel }: ChatPa
               }
             }}
             placeholder="Ask a question..."
-            className="min-h-[60px] resize-none"
+            className="min-h-[100px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-4 py-3"
           />
-          <Button 
-            onClick={handleSend} 
-            disabled={!input.trim() || isLoading}
-            className="shrink-0"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center justify-between px-4 pb-3 pt-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 px-3 text-sm hover:bg-white/10 gap-2">
+                  {getModelInfo(node.model).name}
+                  <ChevronDown className="w-3 h-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[240px]">
+                {AI_MODELS.map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => onChangeModel(node.id, model.id)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className={cn("w-2 h-2 rounded-full", `bg-${model.color}`)} />
+                      <div className="flex-1">
+                        <div className="font-medium">{model.name}</div>
+                        <div className="text-xs text-muted-foreground">{model.description}</div>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button 
+              onClick={handleSend} 
+              disabled={!input.trim() || isLoading}
+              size="sm"
+              className="h-8 px-4"
+            >
+              Ask
+            </Button>
+          </div>
         </div>
       </div>
     </div>

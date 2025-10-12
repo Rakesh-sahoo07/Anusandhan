@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 export interface ConversationNodeData extends Record<string, unknown> {
   id: string;
   model: AIModel;
+  title: string;
   messages: Message[];
   parentId: string | null;
   position: { x: number; y: number };
@@ -42,9 +43,14 @@ export const ConversationNode = memo((props: NodeProps) => {
               "w-2 h-2 rounded-full",
               `bg-${modelInfo.color}`
             )} />
-            <span className="font-semibold text-sm text-foreground">
-              {modelInfo.name}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm text-foreground">
+                {data.title}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {modelInfo.name}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <MessageSquare className="w-3 h-3" />

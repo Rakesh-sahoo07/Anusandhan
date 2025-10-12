@@ -39,41 +39,49 @@ function FlowCanvas() {
 
   const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }) => {
     const nodeId = `node-${Date.now()}`;
-    const newConversationNode: ConversationNodeType = {
-      id: nodeId,
-      model: "llama-3-8b",
-      messages: [],
-      parentId,
-      position,
-      createdAt: Date.now(),
-    };
-
-    const nodeData: ConversationNodeData = {
-      ...newConversationNode,
-      onBranch: handleBranch,
-      onExpand: handleExpand,
-    };
-
-    const newNode: Node = {
-      id: nodeId,
-      type: "conversation",
-      position,
-      data: nodeData,
-    };
-
-    setConversationData((prev) => new Map(prev).set(nodeId, newConversationNode));
-    setNodes((nds) => [...nds, newNode]);
-
-    if (parentId) {
-      const newEdge: Edge = {
-        id: `edge-${parentId}-${nodeId}`,
-        source: parentId,
-        target: nodeId,
-        animated: true,
-        style: { stroke: "hsl(var(--primary))", strokeWidth: 2 },
+    
+    setConversationData((prev) => {
+      // Count existing nodes to generate sequential title
+      const nodeCount = prev.size + 1;
+      
+      const newConversationNode: ConversationNodeType = {
+        id: nodeId,
+        model: "llama-3-8b",
+        title: `untitled${nodeCount}`,
+        messages: [],
+        parentId,
+        position,
+        createdAt: Date.now(),
       };
-      setEdges((eds) => [...eds, newEdge]);
-    }
+
+      const nodeData: ConversationNodeData = {
+        ...newConversationNode,
+        onBranch: handleBranch,
+        onExpand: handleExpand,
+      };
+
+      const newNode: Node = {
+        id: nodeId,
+        type: "conversation",
+        position,
+        data: nodeData,
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+
+      if (parentId) {
+        const newEdge: Edge = {
+          id: `edge-${parentId}-${nodeId}`,
+          source: parentId,
+          target: nodeId,
+          animated: true,
+          style: { stroke: "hsl(var(--primary))", strokeWidth: 2 },
+        };
+        setEdges((eds) => [...eds, newEdge]);
+      }
+      
+      return new Map(prev).set(nodeId, newConversationNode);
+    });
 
     return nodeId;
   }, [setNodes, setEdges]);
@@ -147,6 +155,18 @@ function FlowCanvas() {
       return newMap;
     });
     toast.success(`Switched to ${model}`);
+  }, [updateNodeData]);
+
+  const handleUpdateTitle = useCallback((nodeId: string, title: string) => {
+    setConversationData((prev) => {
+      const node = prev.get(nodeId);
+      if (!node) return prev;
+      const updated = { ...node, title };
+      const newMap = new Map(prev);
+      newMap.set(nodeId, updated);
+      updateNodeData(nodeId, updated);
+      return newMap;
+    });
   }, [updateNodeData]);
 
   const handleExportAll = () => {
@@ -236,6 +256,7 @@ function FlowCanvas() {
         onClose={() => setActiveNode(null)}
         onUpdateNode={handleUpdateNode}
         onChangeModel={handleChangeModel}
+        onUpdateTitle={handleUpdateTitle}
       />
     </div>
   );
