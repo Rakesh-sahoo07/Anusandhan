@@ -212,8 +212,8 @@ export const ConversationNode = memo((props: NodeProps) => {
                       </div>
                     )}
                     
-                    {/* Show input after AI response */}
-                    {message.role === "assistant" && isLastMessage && !isLoading && (
+                    {/* Show input after last message (user or assistant) */}
+                    {isLastMessage && !isLoading && (
                       <div className="pt-2">
                         <Input
                           value={input}
