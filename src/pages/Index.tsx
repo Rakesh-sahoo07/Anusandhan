@@ -37,9 +37,40 @@ function FlowCanvas() {
     }
   }, []);
 
+  const handleUpdateMessages = useCallback((id: string, msgs: Message[]) => {
+    setConversationData((prev) => {
+      const node = prev.get(id);
+      if (!node) {
+        return prev;
+      }
+      const updated = { ...node, messages: msgs };
+      const newMap = new Map(prev);
+      newMap.set(id, updated);
+      
+      // Update React Flow node data
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === id
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  messages: [...msgs],
+                  initialInput: undefined,
+                },
+              }
+            : n
+        )
+      );
+      
+      return newMap;
+    });
+  }, [setNodes]);
+
   const createNewNode = useCallback((parentId: string | null, position: { x: number; y: number }, initialMessages?: Message[], initialInput?: string) => {
     const nodeId = `node-${Date.now()}`;
     
+    // First, add to conversationData
     setConversationData((prev) => {
       const nodeCount = prev.size + 1;
       
@@ -52,85 +83,70 @@ function FlowCanvas() {
         position,
         createdAt: Date.now(),
       };
-
-    const nodeData: ConversationNodeData = {
-      ...newConversationNode,
-      initialInput,
-      onBranch: (id: string, selectedText?: string) => {
-        handleBranch(id, selectedText);
-      },
-      onExpand: (id: string) => handleExpand(id),
-      onUpdateMessages: (id: string, msgs: Message[]) => {
-        toast.info(`onUpdateMessages called for ${id.substring(5, 9)}, ${msgs.length} messages`);
-        setConversationData((prev) => {
-          const node = prev.get(id);
-          if (!node) {
-            toast.error(`Node ${id.substring(5, 9)} not found in conversationData`);
-            return prev;
-          }
-          const updated = { ...node, messages: msgs };
-          const newMap = new Map(prev);
-          newMap.set(id, updated);
-          
-          toast.success(`Updated conversationData for ${id.substring(5, 9)}`);
-          
-          // Force complete node data refresh with new object reference
-          setNodes((nds) =>
-            nds.map((n) =>
-              n.id === id
-                ? {
-                    ...n,
-                    data: {
-                      id,
-                      model: updated.model,
-                      title: updated.title,
-                      messages: [...msgs], // New array reference
-                      parentId: updated.parentId,
-                      position: updated.position,
-                      createdAt: updated.createdAt,
-                      initialInput: undefined,
-                      onBranch: (nodeId: string, selectedText?: string) => {
-                        handleBranch(nodeId, selectedText);
-                      },
-                      onExpand: (nodeId: string) => handleExpand(nodeId),
-                      onUpdateMessages: n.data.onUpdateMessages,
-                    },
-                  }
-                : n
-            )
-          );
-          
-          return newMap;
-        });
-      },
-    };
-
-      const newNode: Node = {
-        id: nodeId,
-        type: "conversation",
-        position,
-        data: nodeData,
-        dragHandle: ".drag-handle",
-      };
-
-      setNodes((nds) => [...nds, newNode]);
-
-      if (parentId) {
-        const newEdge: Edge = {
-          id: `edge-${parentId}-${nodeId}`,
-          source: parentId,
-          target: nodeId,
-          animated: true,
-          style: { stroke: "#ffffff", strokeWidth: 2 },
-        };
-        setEdges((eds) => [...eds, newEdge]);
-      }
       
       return new Map(prev).set(nodeId, newConversationNode);
     });
 
+    // Then, add to React Flow nodes with callbacks
+    const nodeData: ConversationNodeData = {
+      id: nodeId,
+      model: "llama-3-8b",
+      title: `untitled${conversationData.size + 1}`,
+      messages: initialMessages || [],
+      parentId,
+      position,
+      createdAt: Date.now(),
+      initialInput,
+      onBranch: (id: string, selectedText?: string) => {
+        setConversationData((prev) => {
+          const parentNode = prev.get(id);
+          if (!parentNode) {
+            return prev;
+          }
+
+          const newPosition = {
+            x: parentNode.position.x + 450,
+            y: parentNode.position.y + (Math.random() - 0.5) * 200,
+          };
+
+          const newMessages = selectedText ? [] : [...parentNode.messages];
+          createNewNode(id, newPosition, newMessages, selectedText);
+          
+          return prev;
+        });
+      },
+      onExpand: (id: string) => {
+        const node = conversationData.get(id);
+        if (node) {
+          setActiveNode(node);
+        }
+      },
+      onUpdateMessages: handleUpdateMessages,
+    };
+
+    const newNode: Node = {
+      id: nodeId,
+      type: "conversation",
+      position,
+      data: nodeData,
+      dragHandle: ".drag-handle",
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+
+    if (parentId) {
+      const newEdge: Edge = {
+        id: `edge-${parentId}-${nodeId}`,
+        source: parentId,
+        target: nodeId,
+        animated: true,
+        style: { stroke: "#ffffff", strokeWidth: 2 },
+      };
+      setEdges((eds) => [...eds, newEdge]);
+    }
+
     return nodeId;
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, conversationData, handleUpdateMessages]);
 
   const handleBranch = useCallback((nodeId: string, selectedText?: string) => {
     setConversationData((prev) => {

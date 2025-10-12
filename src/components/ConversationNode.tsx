@@ -35,10 +35,6 @@ export const ConversationNode = (props: NodeProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    toast.info(`Node ${data.id.substring(5, 9)} has ${data.messages.length} messages`);
-  }, [data.messages, data.id]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data.messages]);
 
@@ -97,7 +93,6 @@ export const ConversationNode = (props: NodeProps) => {
     };
 
     const updatedMessages = [...data.messages, userMessage];
-    toast.info(`Calling onUpdateMessages for ${data.id.substring(5, 9)} with ${updatedMessages.length} messages`);
     data.onUpdateMessages(data.id, updatedMessages);
     setInput("");
     setIsLoading(true);
