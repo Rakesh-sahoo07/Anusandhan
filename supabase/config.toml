@@ -2,3 +2,6 @@ project_id = "raoqwwwkonogwlqkucuz"
 
 [functions.groq-chat]
 verify_jwt = false
+
+[functions.lighthouse-upload]
+verify_jwt = false
