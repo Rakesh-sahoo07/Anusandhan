@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Download, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { SaveProjectDialog } from "@/components/SaveProjectDialog";
+import { WalletButton } from "@/components/WalletButton";
+import { useWeb3 } from "@/contexts/Web3Context";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -30,22 +32,8 @@ function FlowCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [conversationData, setConversationData] = useState<Map<string, ConversationNodeType>>(new Map());
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-
-  const connectWallet = async () => {
-    if (typeof (window as any).ethereum !== 'undefined') {
-      try {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-        setWalletAddress(accounts[0]);
-        toast.success('Wallet connected');
-      } catch (error) {
-        toast.error('Failed to connect wallet');
-      }
-    } else {
-      toast.error('MetaMask is not installed');
-    }
-  };
+  const { walletAddress } = useWeb3();
 
   useEffect(() => {
     // Initialize with first node centered on canvas
@@ -318,12 +306,7 @@ function FlowCanvas() {
             Save as Project
           </Button>
         </div>
-        <Button 
-          onClick={connectWallet}
-          className="gap-2 bg-white text-black hover:bg-white/90"
-        >
-          {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet'}
-        </Button>
+        <WalletButton />
       </div>
 
       {/* React Flow Canvas */}
