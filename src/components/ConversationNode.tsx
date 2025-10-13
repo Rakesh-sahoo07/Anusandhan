@@ -271,7 +271,7 @@ export const ConversationNode = (props: NodeProps) => {
                 value={data.model} 
                 onValueChange={(value) => data.onChangeModel?.(data.id, value as AIModel)}
               >
-                <SelectTrigger className="h-5 w-auto border-none bg-transparent text-xs text-white/60 hover:text-white/80 focus:ring-0 gap-1 px-0 [&>svg]:w-3 [&>svg]:h-3">
+                <SelectTrigger className="h-5 max-w-[100px] border-none bg-transparent text-xs text-white/60 hover:text-white/80 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:ring-offset-0 gap-1 px-0 [&>svg]:w-3 [&>svg]:h-3">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/20">
