@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.lighthouse-upload]
 verify_jwt = false
+
+[functions.mint-nft]
+verify_jwt = false
+
+[functions.create-listing]
+verify_jwt = false

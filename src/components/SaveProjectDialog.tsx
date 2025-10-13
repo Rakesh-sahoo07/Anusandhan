@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, CheckCircle } from "lucide-react";
+import { Loader2, Upload, CheckCircle, Sparkles } from "lucide-react";
 import { serializeProject, generateProjectMetadata } from "@/utils/projectSerializer";
 import { Progress } from "@/components/ui/progress";
+import { MintNFTDialog } from "./MintNFTDialog";
 
 interface SaveProjectDialogProps {
   open: boolean;
@@ -23,6 +24,13 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>("");
+  const [savedProjectData, setSavedProjectData] = useState<{
+    projectId: string;
+    projectName: string;
+    metadataCid: string;
+    dataCid: string;
+  } | null>(null);
+  const [showMintDialog, setShowMintDialog] = useState(false);
 
   const handleSave = async () => {
     if (!projectName.trim()) {
@@ -144,6 +152,14 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
       setUploadProgress(100);
       setUploadStatus("Complete!");
 
+      // Store project data for minting
+      setSavedProjectData({
+        projectId: project.id,
+        projectName: projectName.trim(),
+        metadataCid,
+        dataCid,
+      });
+
       toast({
         title: "Success",
         description: (
@@ -154,14 +170,7 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
         ),
       });
 
-      // Reset form and close dialog after a short delay
-      setTimeout(() => {
-        setProjectName("");
-        setProjectDescription("");
-        setUploadProgress(0);
-        setUploadStatus("");
-        onOpenChange(false);
-      }, 1500);
+      setIsSaving(false);
 
     } catch (error: any) {
       console.error("Error saving project:", error);
@@ -173,6 +182,19 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
       });
       setIsSaving(false);
     }
+  };
+
+  const handleMintNFT = () => {
+    setShowMintDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setProjectName("");
+    setProjectDescription("");
+    setUploadProgress(0);
+    setUploadStatus("");
+    setSavedProjectData(null);
+    onOpenChange(false);
   };
 
   return (
@@ -227,15 +249,33 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
-            Cancel
+          <Button variant="outline" onClick={handleCloseDialog} disabled={isSaving}>
+            {savedProjectData ? "Close" : "Cancel"}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Project
-          </Button>
+          {!savedProjectData ? (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Project
+            </Button>
+          ) : (
+            <Button onClick={handleMintNFT} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Mint as NFT
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
+
+      {savedProjectData && (
+        <MintNFTDialog
+          open={showMintDialog}
+          onOpenChange={setShowMintDialog}
+          projectId={savedProjectData.projectId}
+          projectName={savedProjectData.projectName}
+          metadataCid={savedProjectData.metadataCid}
+          dataCid={savedProjectData.dataCid}
+        />
+      )}
     </Dialog>
   );
 };
