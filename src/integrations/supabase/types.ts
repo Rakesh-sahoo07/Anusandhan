@@ -14,7 +14,181 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      nft_listings: {
+        Row: {
+          delisted_at: string | null
+          id: string
+          listed_at: string
+          listing_status: Database["public"]["Enums"]["listing_status"]
+          price_pyusd: number
+          project_id: string
+          seller_wallet_address: string
+          sold_at: string | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          delisted_at?: string | null
+          id?: string
+          listed_at?: string
+          listing_status?: Database["public"]["Enums"]["listing_status"]
+          price_pyusd: number
+          project_id: string
+          seller_wallet_address: string
+          sold_at?: string | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          delisted_at?: string | null
+          id?: string
+          listed_at?: string
+          listing_status?: Database["public"]["Enums"]["listing_status"]
+          price_pyusd?: number
+          project_id?: string
+          seller_wallet_address?: string
+          sold_at?: string | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_listings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          snapshot_data: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          snapshot_data: Json
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          snapshot_data?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_snapshots_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          creator_wallet_address: string
+          description: string | null
+          id: string
+          lighthouse_cid: string | null
+          metadata_cid: string | null
+          name: string
+          nft_contract_address: string | null
+          nft_status: Database["public"]["Enums"]["nft_status"]
+          nft_token_id: string | null
+          owner_wallet_address: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_wallet_address: string
+          description?: string | null
+          id?: string
+          lighthouse_cid?: string | null
+          metadata_cid?: string | null
+          name: string
+          nft_contract_address?: string | null
+          nft_status?: Database["public"]["Enums"]["nft_status"]
+          nft_token_id?: string | null
+          owner_wallet_address: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_wallet_address?: string
+          description?: string | null
+          id?: string
+          lighthouse_cid?: string | null
+          metadata_cid?: string | null
+          name?: string
+          nft_contract_address?: string | null
+          nft_status?: Database["public"]["Enums"]["nft_status"]
+          nft_token_id?: string | null
+          owner_wallet_address?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount_pyusd: number
+          buyer_wallet_address: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          listing_id: string | null
+          project_id: string
+          seller_wallet_address: string
+          transaction_hash: string
+          transaction_status: Database["public"]["Enums"]["transaction_status"]
+        }
+        Insert: {
+          amount_pyusd: number
+          buyer_wallet_address: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          project_id: string
+          seller_wallet_address: string
+          transaction_hash: string
+          transaction_status?: Database["public"]["Enums"]["transaction_status"]
+        }
+        Update: {
+          amount_pyusd?: number
+          buyer_wallet_address?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          project_id?: string
+          seller_wallet_address?: string
+          transaction_hash?: string
+          transaction_status?: Database["public"]["Enums"]["transaction_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "nft_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +197,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      listing_status: "active" | "sold" | "delisted"
+      nft_status: "draft" | "minted" | "listed" | "sold" | "delisted"
+      transaction_status: "pending" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +326,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      listing_status: ["active", "sold", "delisted"],
+      nft_status: ["draft", "minted", "listed", "sold", "delisted"],
+      transaction_status: ["pending", "completed", "failed"],
+    },
   },
 } as const
