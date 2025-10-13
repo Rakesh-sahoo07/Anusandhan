@@ -17,8 +17,9 @@ import { ConversationNode, ConversationNodeData } from "@/components/Conversatio
 import { ChatPanel } from "@/components/ChatPanel";
 import { ConversationNode as ConversationNodeType, ConversationGraph, Message, AIModel } from "@/types/conversation";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, Upload } from "lucide-react";
+import { Plus, Download, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
+import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -30,6 +31,7 @@ function FlowCanvas() {
   const [conversationData, setConversationData] = useState<Map<string, ConversationNodeType>>(new Map());
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   const connectWallet = async () => {
     if (typeof (window as any).ethereum !== 'undefined') {
@@ -240,11 +242,17 @@ function FlowCanvas() {
     });
   }, [updateNodeData]);
 
-  const handleExportAll = () => {
-    const exportData: ConversationGraph = {
+  const serializeConversationGraph = () => {
+    return {
       nodes: Array.from(conversationData.values()),
+      edges: edges,
       activeNodeId: activeNode?.id || null,
+      exportedAt: new Date().toISOString()
     };
+  };
+
+  const handleExportAll = () => {
+    const exportData = serializeConversationGraph();
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -301,6 +309,14 @@ function FlowCanvas() {
             <Upload className="w-4 h-4" />
             Import
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setSaveDialogOpen(true)}
+            className="gap-2 border-white/20 text-white hover:bg-white/10"
+          >
+            <Save className="w-4 h-4" />
+            Save as Project
+          </Button>
         </div>
         <Button 
           onClick={connectWallet}
@@ -337,6 +353,14 @@ function FlowCanvas() {
         onUpdateNode={handleUpdateNode}
         onChangeModel={handleChangeModel}
         onUpdateTitle={handleUpdateTitle}
+      />
+
+      {/* Save Project Dialog */}
+      <SaveProjectDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
+        conversationGraph={serializeConversationGraph()}
+        walletAddress={walletAddress}
       />
     </div>
   );
