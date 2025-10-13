@@ -29,6 +29,21 @@ function FlowCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [conversationData, setConversationData] = useState<Map<string, ConversationNodeType>>(new Map());
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const connectWallet = async () => {
+    if (typeof (window as any).ethereum !== 'undefined') {
+      try {
+        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+        setWalletAddress(accounts[0]);
+        toast.success('Wallet connected');
+      } catch (error) {
+        toast.error('Failed to connect wallet');
+      }
+    } else {
+      toast.error('MetaMask is not installed');
+    }
+  };
 
   useEffect(() => {
     // Initialize with first node centered on canvas
@@ -269,21 +284,29 @@ function FlowCanvas() {
   return (
     <div className="h-screen w-screen bg-black">
       {/* Toolbar */}
-      <div className="absolute top-4 left-4 z-10 flex gap-2">
-        <Button
-          onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 }, [])}
+      <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 }, [])}
+            className="gap-2 bg-white text-black hover:bg-white/90"
+          >
+            <Plus className="w-4 h-4" />
+            New Conversation
+          </Button>
+          <Button variant="outline" onClick={handleExportAll} className="gap-2 border-white/20 text-white hover:bg-white/10">
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
+          <Button variant="outline" onClick={handleImport} className="gap-2 border-white/20 text-white hover:bg-white/10">
+            <Upload className="w-4 h-4" />
+            Import
+          </Button>
+        </div>
+        <Button 
+          onClick={connectWallet}
           className="gap-2 bg-white text-black hover:bg-white/90"
         >
-          <Plus className="w-4 h-4" />
-          New Conversation
-        </Button>
-        <Button variant="outline" onClick={handleExportAll} className="gap-2 border-white/20 text-white hover:bg-white/10">
-          <Download className="w-4 h-4" />
-          Export
-        </Button>
-        <Button variant="outline" onClick={handleImport} className="gap-2 border-white/20 text-white hover:bg-white/10">
-          <Upload className="w-4 h-4" />
-          Import
+          {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet'}
         </Button>
       </div>
 
