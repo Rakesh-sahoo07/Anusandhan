@@ -188,7 +188,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
   };
 
   return (
-    <div className="fixed inset-y-0 left-0 w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl overflow-hidden">
+    <div className="fixed left-0 top-[10vh] h-[80vh] w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl overflow-hidden transition-all duration-300 animate-slide-in-right">
       {/* Header - Draggable */}
       <div className="group flex items-center justify-between p-4 border-b border-white/10 cursor-move hover:bg-white/5 transition-colors">
         <div className="flex items-center gap-3 flex-1">

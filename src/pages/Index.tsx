@@ -28,6 +28,7 @@ import { PresenceIndicator } from "@/components/PresenceIndicator";
 import { LoadProjectDialog } from "@/components/LoadProjectDialog";
 import { loadProjectFromIPFS } from "@/utils/projectLoader";
 import { SerializedProject } from "@/utils/projectSerializer";
+import { cn } from "@/lib/utils";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -62,6 +63,19 @@ function FlowCanvas() {
       createNewNode(null, { x: 400, y: 250 }, []);
     }
   }, [location.state]);
+
+  // Update isActive state for all nodes when activeNode changes
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isActive: node.id === activeNode?.id,
+        },
+      }))
+    );
+  }, [activeNode?.id, setNodes]);
 
   const handleUpdateMessages = useCallback((id: string, msgs: Message[]) => {
     setConversationData((prev) => {
@@ -122,6 +136,7 @@ function FlowCanvas() {
           position,
           createdAt: Date.now(),
           initialInput,
+          isActive: false,
           onBranch: (id: string, selectedText?: string) => {
             setConversationData((prevData) => {
               const parentNode = prevData.get(id);
@@ -279,6 +294,7 @@ function FlowCanvas() {
       const flowNodes: Node[] = projectData.nodes.map((node) => {
         const nodeData: ConversationNodeData = {
           ...node,
+          isActive: false,
           onBranch: (id: string, selectedText?: string) => {
             setConversationData((prevData) => {
               const parentNode = prevData.get(id);
@@ -394,7 +410,7 @@ function FlowCanvas() {
   );
 
   return (
-    <div className="h-screen w-screen bg-black">
+    <div className={cn("h-screen w-screen bg-black transition-all duration-300", activeNode ? "pl-[600px]" : "")}>
       {/* Top Right - Wallet & Presence */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <PresenceIndicator />
@@ -521,29 +537,31 @@ function FlowCanvas() {
       </div>
 
       {/* React Flow Canvas */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        className="bg-black"
-        zoomOnScroll={!isInputFocused}
-        panOnScroll={false}
-        zoomOnPinch={true}
-        zoomOnDoubleClick={true}
-      >
-        <Background color="#333333" gap={20} size={1} />
-        <Controls 
-          position="bottom-right"
-          className="!bg-transparent border-none [&_button]:!bg-white/10 [&_button]:!border-white/20 [&_button]:hover:!bg-white/20 [&_button_svg]:!fill-white [&_button]:!text-white"
-          showZoom={true}
-          showFitView={true}
-          showInteractive={true}
-        />
-      </ReactFlow>
+      <div className={cn("h-screen w-full transition-all duration-300")}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+          className="bg-black"
+          zoomOnScroll={!isInputFocused}
+          panOnScroll={false}
+          zoomOnPinch={true}
+          zoomOnDoubleClick={true}
+        >
+          <Background color="#333333" gap={20} size={1} />
+          <Controls 
+            position="bottom-right"
+            className="!bg-transparent border-none [&_button]:!bg-white/10 [&_button]:!border-white/20 [&_button]:hover:!bg-white/20 [&_button_svg]:!fill-white [&_button]:!text-white"
+            showZoom={true}
+            showFitView={true}
+            showInteractive={true}
+          />
+        </ReactFlow>
+      </div>
 
       {/* Chat Panel */}
       <ChatPanel

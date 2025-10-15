@@ -25,6 +25,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   createdAt: number;
   initialInput?: string;
   isInputFocused?: boolean;
+  isActive?: boolean;
   onBranch: (nodeId: string, selectedText?: string) => void;
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
@@ -244,7 +245,13 @@ export const ConversationNode = (props: NodeProps) => {
   };
 
   return (
-    <div className="min-w-[380px] max-w-[420px] relative pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="min-w-[380px] max-w-[420px] relative pointer-events-auto cursor-pointer" 
+      onClick={(e) => {
+        e.stopPropagation();
+        data.onExpand(data.id);
+      }}
+    >
       <Handle type="target" position={Position.Top} className="!bg-white" />
       
       {/* Fork Button */}
@@ -275,8 +282,10 @@ export const ConversationNode = (props: NodeProps) => {
       
       <div 
         className={cn(
-          "rounded-xl border bg-[#1a1a1a] backdrop-blur-sm",
-          "shadow-lg border-white/10 flex flex-col min-h-[200px] max-h-[600px]"
+          "rounded-xl border bg-[#1a1a1a] backdrop-blur-sm transition-all duration-200",
+          "shadow-lg flex flex-col min-h-[200px] max-h-[600px]",
+          "hover:border-white/20 hover:shadow-xl",
+          data.isActive ? "border-primary shadow-primary/20" : "border-white/10"
         )}
       >
         {/* Header - Drag Handle */}
