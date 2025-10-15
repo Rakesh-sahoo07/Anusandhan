@@ -283,8 +283,14 @@ function FlowCanvas() {
 
   return (
     <div className="h-screen w-screen bg-black">
-      {/* Toolbar */}
-      <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
+      {/* Top Right - Wallet & Presence */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <PresenceIndicator />
+        <WalletButton />
+      </div>
+      
+      {/* Bottom Centered Toolbar */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
         <TooltipProvider>
           <div className="flex gap-2 items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-2">
             <Tooltip delayDuration={1000}>
@@ -297,7 +303,7 @@ function FlowCanvas() {
                   <Plus className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>New Conversation</p>
               </TooltipContent>
             </Tooltip>
@@ -313,7 +319,7 @@ function FlowCanvas() {
                   <Download className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>Export</p>
               </TooltipContent>
             </Tooltip>
@@ -329,7 +335,7 @@ function FlowCanvas() {
                   <Upload className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>Import</p>
               </TooltipContent>
             </Tooltip>
@@ -345,7 +351,7 @@ function FlowCanvas() {
                   <Save className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>Save as Project</p>
               </TooltipContent>
             </Tooltip>
@@ -361,7 +367,7 @@ function FlowCanvas() {
                   <ShoppingBag className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>Marketplace</p>
               </TooltipContent>
             </Tooltip>
@@ -377,16 +383,12 @@ function FlowCanvas() {
                   <BarChart3 className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="top">
                 <p>Analytics</p>
               </TooltipContent>
             </Tooltip>
           </div>
         </TooltipProvider>
-        <div className="flex items-center gap-2">
-          <PresenceIndicator />
-          <WalletButton />
-        </div>
       </div>
 
       {/* React Flow Canvas */}
