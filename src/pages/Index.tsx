@@ -401,10 +401,10 @@ function FlowCanvas() {
         <WalletButton />
       </div>
       
-      {/* Bottom Centered Toolbar */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+      {/* Right Side Toolbar */}
+      <div className="absolute bottom-4 right-4 z-10">
         <TooltipProvider>
-          <div className="flex gap-2 items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-2">
+          <div className="flex gap-2 items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-2 shadow-lg">
             <Tooltip delayDuration={1000}>
               <TooltipTrigger asChild>
                 <Button
