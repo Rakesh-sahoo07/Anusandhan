@@ -24,6 +24,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   position: { x: number; y: number };
   createdAt: number;
   initialInput?: string;
+  isInputFocused?: boolean;
   onBranch: (nodeId: string, selectedText?: string) => void;
   onExpand: (nodeId: string) => void;
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
@@ -43,6 +44,7 @@ export const ConversationNode = (props: NodeProps) => {
   const [forkPosition, setForkPosition] = useState({ x: 0, y: 0 });
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(data.title);
+  const [inputFocused, setInputFocused] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +109,12 @@ export const ConversationNode = (props: NodeProps) => {
     
     const isAtTop = scrollTop === 0;
     const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+    
+    // If input is focused, always allow chat scrolling and prevent canvas interaction
+    if (inputFocused) {
+      e.stopPropagation();
+      return;
+    }
     
     // Only prevent canvas zoom if content is scrollable and not at boundaries
     if (isScrollable) {
@@ -281,8 +289,12 @@ export const ConversationNode = (props: NodeProps) => {
                   ref={titleInputRef}
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  onFocus={() => data.onInputFocus?.(true)}
+                  onFocus={() => {
+                    setInputFocused(true);
+                    data.onInputFocus?.(true);
+                  }}
                   onBlur={() => {
+                    setInputFocused(false);
                     data.onInputFocus?.(false);
                     handleTitleSave();
                   }}
@@ -346,8 +358,14 @@ export const ConversationNode = (props: NodeProps) => {
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onFocus={() => data.onInputFocus?.(true)}
-                onBlur={() => data.onInputFocus?.(false)}
+                onFocus={() => {
+                  setInputFocused(true);
+                  data.onInputFocus?.(true);
+                }}
+                onBlur={() => {
+                  setInputFocused(false);
+                  data.onInputFocus?.(false);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -391,8 +409,14 @@ export const ConversationNode = (props: NodeProps) => {
                           ref={inputRef}
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
-                          onFocus={() => data.onInputFocus?.(true)}
-                          onBlur={() => data.onInputFocus?.(false)}
+                          onFocus={() => {
+                            setInputFocused(true);
+                            data.onInputFocus?.(true);
+                          }}
+                          onBlur={() => {
+                            setInputFocused(false);
+                            data.onInputFocus?.(false);
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault();
