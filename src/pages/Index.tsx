@@ -537,6 +537,7 @@ function FlowCanvas() {
       >
         <Background color="#333333" gap={20} size={1} />
         <Controls 
+          position="bottom-right"
           className="!bg-transparent border-none [&_button]:!bg-white/10 [&_button]:!border-white/20 [&_button]:hover:!bg-white/20 [&_button_svg]:!fill-white [&_button]:!text-white"
           showZoom={true}
           showFitView={true}
