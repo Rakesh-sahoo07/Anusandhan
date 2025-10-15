@@ -304,7 +304,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
               }
             }}
             placeholder="Ask a question..."
-            className="min-h-[100px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-4 py-3"
+            className="min-h-[60px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-4 py-3"
           />
           <div className="flex items-center justify-between px-4 pb-3 pt-2">
             <DropdownMenu>
