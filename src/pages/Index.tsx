@@ -309,10 +309,17 @@ function FlowCanvas() {
           </Button>
           <Button 
             variant="outline" 
+            onClick={() => navigate("/projects")}
+            className="gap-2 border-white/20 text-white hover:bg-white/10"
+          >
+            My Projects
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => navigate("/marketplace")}
             className="gap-2 border-white/20 text-white hover:bg-white/10"
           >
-            View Marketplace
+            Marketplace
           </Button>
         </div>
         <WalletButton />

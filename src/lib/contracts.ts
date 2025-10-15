@@ -28,6 +28,8 @@ export const RESEARCH_NFT_ABI = [
   "function isMinted(string memory projectCID) external view returns (bool)",
   "function ownerOf(uint256 tokenId) external view returns (address)",
   "function tokenURI(uint256 tokenId) external view returns (string memory)",
+  "function setApprovalForAll(address operator, bool approved) external",
+  "function isApprovedForAll(address owner, address operator) external view returns (bool)",
   "event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string cid, string metadataURI)",
 ];
 
