@@ -63,6 +63,11 @@ export const ConversationNode = (props: NodeProps) => {
     }
   }, [data.initialInput]);
 
+  // Sync editedTitle with data.title when it changes
+  useEffect(() => {
+    setEditedTitle(data.title);
+  }, [data.title]);
+
   // Focus title input when editing starts
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
@@ -256,11 +261,11 @@ export const ConversationNode = (props: NodeProps) => {
                   onChange={(e) => setEditedTitle(e.target.value)}
                   onBlur={handleTitleSave}
                   onKeyDown={handleTitleKeyDown}
-                  className="h-6 px-1 py-0 text-sm font-semibold bg-white/10 border-white/20 text-white"
+                  className="h-6 px-1 py-0 text-sm font-semibold bg-white/10 border-white/20 text-white max-w-[150px]"
                 />
               ) : (
                 <span 
-                  className="font-semibold text-sm text-white truncate cursor-pointer hover:text-white/80"
+                  className="font-semibold text-sm text-white truncate cursor-pointer hover:text-white/80 max-w-[150px] block"
                   onClick={() => setIsEditingTitle(true)}
                   title="Click to edit"
                 >
