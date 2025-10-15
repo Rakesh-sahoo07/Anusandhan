@@ -96,6 +96,27 @@ export const ConversationNode = (props: NodeProps) => {
     }
   };
 
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = element;
+    
+    const isScrollable = scrollHeight > clientHeight;
+    const isScrollingDown = e.deltaY > 0;
+    const isScrollingUp = e.deltaY < 0;
+    
+    const isAtTop = scrollTop === 0;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+    
+    // Only prevent canvas zoom if content is scrollable and not at boundaries
+    if (isScrollable) {
+      if (isScrollingDown && !isAtBottom) {
+        e.stopPropagation();
+      } else if (isScrollingUp && !isAtTop) {
+        e.stopPropagation();
+      }
+    }
+  };
+
   const handleTextSelection = (e: React.MouseEvent) => {
     const selection = window.getSelection();
     const text = selection?.toString().trim();
@@ -313,7 +334,7 @@ export const ConversationNode = (props: NodeProps) => {
         </div>
 
         {/* Conversation Area */}
-        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0" onWheel={(e) => e.stopPropagation()}>
+        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0" onWheel={handleWheel}>
           {data.messages.filter((m: Message) => m.role !== "system").length === 0 ? (
             <div className="flex flex-col h-full">
               <Input
