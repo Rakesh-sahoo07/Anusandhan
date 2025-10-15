@@ -281,13 +281,19 @@ export default function Projects() {
             {projects.map((project) => (
               <Card 
                 key={project.id} 
-                className="relative p-6 bg-white/5 backdrop-blur-xl border-white/20 hover:bg-white/10 hover:border-white/30 transition-all overflow-hidden group"
+                className="relative p-6 bg-white/5 backdrop-blur-xl border-white/20 hover:border-white/30 transition-all overflow-hidden group"
               >
-                {/* Top-left corner border */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 transition-all group-hover:w-12 group-hover:h-12" />
+                {/* Top-left corner border with gradient blend */}
+                <div className="absolute top-0 left-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12">
+                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-white/80 to-transparent" />
+                  <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-white/80 to-transparent" />
+                </div>
                 
-                {/* Bottom-right corner border */}
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 transition-all group-hover:w-12 group-hover:h-12" />
+                {/* Bottom-right corner border with gradient blend */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12">
+                  <div className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-l from-white/80 to-transparent" />
+                  <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-t from-white/80 to-transparent" />
+                </div>
                 <div className="space-y-4 relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
