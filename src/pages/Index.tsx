@@ -18,13 +18,16 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { ConversationNode as ConversationNodeType, ConversationGraph, Message, AIModel } from "@/types/conversation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { Plus, Download, Upload, Save, ShoppingBag, BarChart3 } from "lucide-react";
+import { Plus, Download, Upload, Save, ShoppingBag, BarChart3, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 import { WalletButton } from "@/components/WalletButton";
 import { useWeb3 } from "@/contexts/Web3Context";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { PresenceIndicator } from "@/components/PresenceIndicator";
+import { LoadProjectDialog } from "@/components/LoadProjectDialog";
+import { loadProjectFromIPFS } from "@/utils/projectLoader";
+import { SerializedProject } from "@/utils/projectSerializer";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -36,15 +39,28 @@ function FlowCanvas() {
   const [conversationData, setConversationData] = useState<Map<string, ConversationNodeType>>(new Map());
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [derivedFromProjectId, setDerivedFromProjectId] = useState<string | null>(null);
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // Initialize with first node centered on canvas
-    if (nodes.length === 0) {
+    // Check if we're loading a project from navigation state
+    if (location.state?.projectData) {
+      loadProjectData(
+        location.state.projectData,
+        location.state.projectId,
+        location.state.derivedFromProjectId
+      );
+      // Clear the state after loading
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (nodes.length === 0) {
+      // Initialize with first node centered on canvas
       createNewNode(null, { x: 400, y: 250 }, []);
     }
-  }, []);
+  }, [location.state]);
 
   const handleUpdateMessages = useCallback((id: string, msgs: Message[]) => {
     setConversationData((prev) => {
@@ -234,6 +250,99 @@ function FlowCanvas() {
     });
   }, [updateNodeData]);
 
+  const loadProjectData = useCallback((
+    projectData: SerializedProject,
+    projectId?: string,
+    derivedFrom?: string
+  ) => {
+    try {
+      // Clear existing data
+      setNodes([]);
+      setEdges([]);
+      setConversationData(new Map());
+      setActiveNode(null);
+
+      // Set project metadata
+      if (projectId) setCurrentProjectId(projectId);
+      if (derivedFrom) setDerivedFromProjectId(derivedFrom);
+
+      // Load nodes
+      const nodeMap = new Map<string, ConversationNodeType>();
+      projectData.nodes.forEach((node) => {
+        nodeMap.set(node.id, node);
+      });
+      setConversationData(nodeMap);
+
+      // Create React Flow nodes
+      const flowNodes: Node[] = projectData.nodes.map((node) => {
+        const nodeData: ConversationNodeData = {
+          ...node,
+          onBranch: (id: string, selectedText?: string) => {
+            setConversationData((prevData) => {
+              const parentNode = prevData.get(id);
+              if (!parentNode) {
+                toast.error(`Parent node not found: ${id}`);
+                return prevData;
+              }
+
+              const newPosition = {
+                x: parentNode.position.x + 450,
+                y: parentNode.position.y + (Math.random() - 0.5) * 200,
+              };
+
+              const newMessages = selectedText ? [] : [...parentNode.messages];
+              
+              setTimeout(() => {
+                createNewNode(id, newPosition, newMessages, selectedText);
+                toast.success(selectedText ? "Forked with selected text" : "Created new branch");
+              }, 0);
+              
+              return prevData;
+            });
+          },
+          onExpand: (id: string) => {
+            setConversationData((prevData) => {
+              const node = prevData.get(id);
+              if (node) {
+                setActiveNode(node);
+              }
+              return prevData;
+            });
+          },
+          onUpdateMessages: handleUpdateMessages,
+          onChangeModel: handleChangeModel,
+          onUpdateTitle: handleUpdateTitle,
+        };
+
+        return {
+          id: node.id,
+          type: "conversation",
+          position: node.position,
+          data: nodeData,
+          dragHandle: ".drag-handle",
+        };
+      });
+
+      setNodes(flowNodes);
+      setEdges(projectData.edges);
+
+      toast.success("Project loaded successfully");
+    } catch (error) {
+      console.error("Error loading project data:", error);
+      toast.error("Failed to load project");
+    }
+  }, [setNodes, setEdges, handleUpdateMessages, handleChangeModel, handleUpdateTitle]);
+
+  const handleLoadProjectFromDialog = useCallback(async (projectId: string, lighthouseCid: string) => {
+    try {
+      const projectData = await loadProjectFromIPFS(lighthouseCid);
+      loadProjectData(projectData, projectId);
+    } catch (error) {
+      console.error("Error loading project:", error);
+      toast.error("Failed to load project");
+    }
+  }, [loadProjectData]);
+
   const serializeConversationGraph = () => {
     return {
       nodes: Array.from(conversationData.values()),
@@ -345,6 +454,23 @@ function FlowCanvas() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
+                  onClick={() => setLoadDialogOpen(true)}
+                  className="text-white hover:bg-white/10"
+                  disabled={!walletAddress}
+                >
+                  <FolderOpen className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>{walletAddress ? "Load Project" : "Connect wallet to load projects"}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
                   onClick={() => setSaveDialogOpen(true)}
                   className="text-white hover:bg-white/10"
                 >
@@ -426,7 +552,19 @@ function FlowCanvas() {
         onOpenChange={setSaveDialogOpen}
         conversationGraph={serializeConversationGraph()}
         walletAddress={walletAddress}
+        currentProjectId={currentProjectId}
+        derivedFromProjectId={derivedFromProjectId}
       />
+
+      {/* Load Project Dialog */}
+      {walletAddress && (
+        <LoadProjectDialog
+          open={loadDialogOpen}
+          onOpenChange={setLoadDialogOpen}
+          walletAddress={walletAddress}
+          onLoadProject={handleLoadProjectFromDialog}
+        />
+      )}
     </div>
   );
 }

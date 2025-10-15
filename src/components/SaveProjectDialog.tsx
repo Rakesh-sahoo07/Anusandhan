@@ -16,9 +16,18 @@ interface SaveProjectDialogProps {
   onOpenChange: (open: boolean) => void;
   conversationGraph: any;
   walletAddress: string | null;
+  currentProjectId?: string | null;
+  derivedFromProjectId?: string | null;
 }
 
-export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walletAddress }: SaveProjectDialogProps) => {
+export const SaveProjectDialog = ({ 
+  open, 
+  onOpenChange, 
+  conversationGraph, 
+  walletAddress,
+  currentProjectId,
+  derivedFromProjectId 
+}: SaveProjectDialogProps) => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -114,25 +123,72 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
       const metadataCid = metadataResult.cid;
       console.log('Metadata uploaded to IPFS:', metadataCid);
 
-      // Step 4: Create project record in database (70%)
+      // Step 4: Create or update project record in database (70%)
       setUploadProgress(70);
-      setUploadStatus("Saving to database...");
+      
+      let project;
+      
+      // If editing existing draft project
+      if (currentProjectId && !derivedFromProjectId) {
+        setUploadStatus("Updating project...");
+        const { data, error: projectError } = await supabase
+          .from("projects")
+          .update({
+            name: projectName.trim(),
+            description: projectDescription.trim() || null,
+            lighthouse_cid: dataCid,
+            metadata_cid: metadataCid,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", currentProjectId)
+          .select()
+          .single();
 
-      const { data: project, error: projectError } = await supabase
-        .from("projects")
-        .insert({
-          name: projectName.trim(),
-          description: projectDescription.trim() || null,
-          creator_wallet_address: walletAddress,
-          owner_wallet_address: walletAddress,
-          nft_status: "draft",
-          lighthouse_cid: dataCid,
-          metadata_cid: metadataCid,
-        })
-        .select()
-        .single();
+        if (projectError) throw projectError;
+        project = data;
+      } 
+      // If creating derived version from minted NFT
+      else if (derivedFromProjectId) {
+        setUploadStatus("Creating derived version...");
+        const { data, error: projectError } = await supabase
+          .from("projects")
+          .insert({
+            name: projectName.trim(),
+            description: projectDescription.trim() || null,
+            creator_wallet_address: walletAddress,
+            owner_wallet_address: walletAddress,
+            nft_status: "draft",
+            lighthouse_cid: dataCid,
+            metadata_cid: metadataCid,
+            derived_from_project_id: derivedFromProjectId,
+            is_derived: true,
+          })
+          .select()
+          .single();
 
-      if (projectError) throw projectError;
+        if (projectError) throw projectError;
+        project = data;
+      } 
+      // Creating new project
+      else {
+        setUploadStatus("Saving to database...");
+        const { data, error: projectError } = await supabase
+          .from("projects")
+          .insert({
+            name: projectName.trim(),
+            description: projectDescription.trim() || null,
+            creator_wallet_address: walletAddress,
+            owner_wallet_address: walletAddress,
+            nft_status: "draft",
+            lighthouse_cid: dataCid,
+            metadata_cid: metadataCid,
+          })
+          .select()
+          .single();
+
+        if (projectError) throw projectError;
+        project = data;
+      }
 
       // Step 5: Save conversation graph snapshot (90%)
       setUploadProgress(90);
@@ -197,13 +253,20 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
     onOpenChange(false);
   };
 
+  const isEditing = !!currentProjectId && !derivedFromProjectId;
+  const isDeriving = !!derivedFromProjectId;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Save as Project</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Update Project" : isDeriving ? "Create Derived Version" : "Save as Project"}
+          </DialogTitle>
           <DialogDescription>
-            Save your conversation graph as a project. You can later mint it as an NFT.
+            {isDeriving 
+              ? "Create a new draft project based on this minted NFT. You can modify and mint it as a new NFT." 
+              : "Save your conversation graph as a project. You can later mint it as an NFT."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -255,7 +318,7 @@ export const SaveProjectDialog = ({ open, onOpenChange, conversationGraph, walle
           {!savedProjectData ? (
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Project
+              {isEditing ? "Update Project" : isDeriving ? "Create Derived Version" : "Save Project"}
             </Button>
           ) : (
             <Button onClick={handleMintNFT} className="gap-2">

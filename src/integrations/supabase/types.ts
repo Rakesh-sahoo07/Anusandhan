@@ -94,8 +94,10 @@ export type Database = {
         Row: {
           created_at: string
           creator_wallet_address: string
+          derived_from_project_id: string | null
           description: string | null
           id: string
+          is_derived: boolean
           lighthouse_cid: string | null
           metadata_cid: string | null
           name: string
@@ -109,8 +111,10 @@ export type Database = {
         Insert: {
           created_at?: string
           creator_wallet_address: string
+          derived_from_project_id?: string | null
           description?: string | null
           id?: string
+          is_derived?: boolean
           lighthouse_cid?: string | null
           metadata_cid?: string | null
           name: string
@@ -124,8 +128,10 @@ export type Database = {
         Update: {
           created_at?: string
           creator_wallet_address?: string
+          derived_from_project_id?: string | null
           description?: string | null
           id?: string
+          is_derived?: boolean
           lighthouse_cid?: string | null
           metadata_cid?: string | null
           name?: string
@@ -136,7 +142,15 @@ export type Database = {
           updated_at?: string
           view_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_derived_from_project_id_fkey"
+            columns: ["derived_from_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {

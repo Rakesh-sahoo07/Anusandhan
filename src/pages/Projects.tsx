@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ExternalLink, Coins, ShoppingBag } from "lucide-react";
+import { Loader2, ExternalLink, Coins, ShoppingBag, Trash2, Edit, GitBranch } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
 import { shortenCid } from "@/utils/ipfs";
 import { MintNFTDialog } from "@/components/MintNFTDialog";
 import { ListNFTDialog } from "@/components/ListNFTDialog";
+import { DeleteProjectDialog } from "@/components/DeleteProjectDialog";
+import { loadProjectFromIPFS } from "@/utils/projectLoader";
 
 interface Project {
   id: string;
@@ -24,6 +26,8 @@ interface Project {
   created_at: string;
   creator_wallet_address: string;
   owner_wallet_address: string;
+  derived_from_project_id: string | null;
+  is_derived: boolean;
 }
 
 export default function Projects() {
@@ -32,6 +36,8 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mintDialogOpen, setMintDialogOpen] = useState(false);
   const [listDialogOpen, setListDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
 
@@ -77,6 +83,101 @@ export default function Projects() {
   const handleListClick = (project: Project) => {
     setSelectedProject(project);
     setListDialogOpen(true);
+  };
+
+  const handleEditClick = async (project: Project) => {
+    try {
+      const projectData = await loadProjectFromIPFS(project.lighthouse_cid);
+      
+      // Navigate to editor with project data
+      navigate("/", { 
+        state: { 
+          projectData,
+          projectId: project.id,
+          isDerived: project.nft_status === 'minted' || project.nft_status === 'listed'
+        } 
+      });
+    } catch (error) {
+      console.error("Error loading project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load project data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteClick = (project: Project) => {
+    if (project.nft_status !== "draft") {
+      toast({
+        title: "Cannot Delete",
+        description: "Only draft projects can be deleted. Minted and listed NFTs cannot be removed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSelectedProject(project);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedProject) return;
+
+    try {
+      setDeletingProject(true);
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", selectedProject.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+      
+      fetchProjects();
+      setDeleteDialogOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingProject(false);
+    }
+  };
+
+  const handleCreateDerivedVersion = async (project: Project) => {
+    try {
+      const projectData = await loadProjectFromIPFS(project.lighthouse_cid);
+      
+      // Navigate to editor with derived project flag
+      navigate("/", { 
+        state: { 
+          projectData,
+          derivedFromProjectId: project.id,
+          isDerived: true,
+          originalProjectName: project.name
+        } 
+      });
+      
+      toast({
+        title: "Creating Derived Version",
+        description: "When you save, a new project will be created based on this NFT.",
+      });
+    } catch (error) {
+      console.error("Error loading project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load project data",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -156,6 +257,13 @@ export default function Projects() {
                     </Badge>
                   </div>
 
+                  {project.is_derived && project.derived_from_project_id && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <GitBranch className="h-3 w-3" />
+                      <span>Derived version</span>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Data CID:</span>
@@ -197,31 +305,73 @@ export default function Projects() {
 
                   <div className="pt-4 border-t border-border space-y-2">
                     {project.nft_status === "draft" && (
-                      <Button
-                        className="w-full"
-                        onClick={() => handleMintClick(project)}
-                      >
-                        <Coins className="h-4 w-4 mr-2" />
-                        Mint as NFT
-                      </Button>
+                      <>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClick(project)}
+                            className="flex-1"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteClick(project)}
+                            className="flex-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                        <Button
+                          className="w-full"
+                          onClick={() => handleMintClick(project)}
+                        >
+                          <Coins className="h-4 w-4 mr-2" />
+                          Mint as NFT
+                        </Button>
+                      </>
                     )}
                     {project.nft_status === "minted" && (
-                      <Button
-                        className="w-full"
-                        onClick={() => handleListClick(project)}
-                      >
-                        <ShoppingBag className="h-4 w-4 mr-2" />
-                        List on Marketplace
-                      </Button>
+                      <>
+                        <Button
+                          className="w-full"
+                          onClick={() => handleListClick(project)}
+                        >
+                          <ShoppingBag className="h-4 w-4 mr-2" />
+                          List on Marketplace
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleCreateDerivedVersion(project)}
+                        >
+                          <GitBranch className="h-4 w-4 mr-2" />
+                          Create Derived Version
+                        </Button>
+                      </>
                     )}
                     {project.nft_status === "listed" && (
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        onClick={() => navigate("/marketplace")}
-                      >
-                        View in Marketplace
-                      </Button>
+                      <>
+                        <Button
+                          className="w-full"
+                          variant="outline"
+                          onClick={() => navigate("/marketplace")}
+                        >
+                          View in Marketplace
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleCreateDerivedVersion(project)}
+                        >
+                          <GitBranch className="h-4 w-4 mr-2" />
+                          Create Derived Version
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -246,6 +396,13 @@ export default function Projects() {
             open={listDialogOpen}
             onOpenChange={setListDialogOpen}
             onSuccess={fetchProjects}
+          />
+          <DeleteProjectDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            projectName={selectedProject.name}
+            onConfirm={handleDeleteConfirm}
+            isDeleting={deletingProject}
           />
         </>
       )}
