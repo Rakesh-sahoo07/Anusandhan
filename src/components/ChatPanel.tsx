@@ -16,9 +16,10 @@ interface ChatPanelProps {
   onUpdateNode: (nodeId: string, messages: Message[]) => void;
   onChangeModel: (nodeId: string, model: AIModel) => void;
   onUpdateTitle?: (nodeId: string, title: string) => void;
+  onInputFocus?: (focused: boolean) => void;
 }
 
-export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdateTitle }: ChatPanelProps) {
+export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdateTitle, onInputFocus }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -294,6 +295,8 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onFocus={() => onInputFocus?.(true)}
+            onBlur={() => onInputFocus?.(false)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

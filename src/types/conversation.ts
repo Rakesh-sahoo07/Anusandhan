@@ -29,6 +29,7 @@ export interface ConversationNode {
   parentId: string | null;
   position: { x: number; y: number };
   createdAt: number;
+  onInputFocus?: (focused: boolean) => void;
 }
 
 export interface ConversationGraph {

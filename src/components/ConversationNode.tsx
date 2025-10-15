@@ -29,6 +29,7 @@ export interface ConversationNodeData extends Record<string, unknown> {
   onUpdateMessages: (nodeId: string, messages: Message[]) => void;
   onChangeModel?: (nodeId: string, model: AIModel) => void;
   onUpdateTitle?: (nodeId: string, title: string) => void;
+  onInputFocus?: (focused: boolean) => void;
 }
 
 export const ConversationNode = (props: NodeProps) => {
@@ -280,7 +281,11 @@ export const ConversationNode = (props: NodeProps) => {
                   ref={titleInputRef}
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  onBlur={handleTitleSave}
+                  onFocus={() => data.onInputFocus?.(true)}
+                  onBlur={() => {
+                    data.onInputFocus?.(false);
+                    handleTitleSave();
+                  }}
                   onKeyDown={handleTitleKeyDown}
                   className="h-auto px-0 py-0 text-sm font-semibold bg-transparent text-white max-w-[150px] border-none focus:border-none focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
                 />
@@ -341,6 +346,8 @@ export const ConversationNode = (props: NodeProps) => {
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onFocus={() => data.onInputFocus?.(true)}
+                onBlur={() => data.onInputFocus?.(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -384,6 +391,8 @@ export const ConversationNode = (props: NodeProps) => {
                           ref={inputRef}
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
+                          onFocus={() => data.onInputFocus?.(true)}
+                          onBlur={() => data.onInputFocus?.(false)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault();

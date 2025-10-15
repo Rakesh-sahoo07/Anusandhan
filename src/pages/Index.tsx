@@ -42,6 +42,7 @@ function FlowCanvas() {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [derivedFromProjectId, setDerivedFromProjectId] = useState<string | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
   const location = useLocation();
@@ -157,6 +158,7 @@ function FlowCanvas() {
           onUpdateMessages: handleUpdateMessages,
           onChangeModel: handleChangeModel,
           onUpdateTitle: handleUpdateTitle,
+          onInputFocus: (focused: boolean) => setIsInputFocused(focused),
         };
 
         const newNode: Node = {
@@ -312,6 +314,7 @@ function FlowCanvas() {
           onUpdateMessages: handleUpdateMessages,
           onChangeModel: handleChangeModel,
           onUpdateTitle: handleUpdateTitle,
+          onInputFocus: (focused: boolean) => setIsInputFocused(focused),
         };
 
         return {
@@ -527,6 +530,10 @@ function FlowCanvas() {
         nodeTypes={nodeTypes}
         fitView
         className="bg-black"
+        zoomOnScroll={!isInputFocused}
+        panOnScroll={false}
+        zoomOnPinch={true}
+        zoomOnDoubleClick={true}
       >
         <Background color="#333333" gap={20} size={1} />
         <Controls 
@@ -544,6 +551,7 @@ function FlowCanvas() {
         onUpdateNode={handleUpdateNode}
         onChangeModel={handleChangeModel}
         onUpdateTitle={handleUpdateTitle}
+        onInputFocus={setIsInputFocused}
       />
 
       {/* Save Project Dialog */}
