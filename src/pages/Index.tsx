@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 import { WalletButton } from "@/components/WalletButton";
 import { useWeb3 } from "@/contexts/Web3Context";
+import { useNavigate } from "react-router-dom";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -34,6 +35,7 @@ function FlowCanvas() {
   const [activeNode, setActiveNode] = useState<ConversationNodeType | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const { walletAddress } = useWeb3();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Initialize with first node centered on canvas
@@ -304,6 +306,13 @@ function FlowCanvas() {
           >
             <Save className="w-4 h-4" />
             Save as Project
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/marketplace")}
+            className="gap-2 border-white/20 text-white hover:bg-white/10"
+          >
+            View Marketplace
           </Button>
         </div>
         <WalletButton />
