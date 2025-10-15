@@ -261,7 +261,7 @@ export const ConversationNode = (props: NodeProps) => {
                   onChange={(e) => setEditedTitle(e.target.value)}
                   onBlur={handleTitleSave}
                   onKeyDown={handleTitleKeyDown}
-                  className="h-6 px-1 py-0 text-sm font-semibold bg-white/10 text-white max-w-[150px] border-none focus:border-none focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-auto px-0 py-0 text-sm font-semibold bg-transparent text-white max-w-[150px] border-none focus:border-none focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               ) : (
                 <span 
