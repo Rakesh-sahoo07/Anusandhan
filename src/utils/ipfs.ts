@@ -28,7 +28,8 @@ export const fetchFromIpfs = async (cid: string): Promise<any> => {
 /**
  * Shorten a CID for display
  */
-export const shortenCid = (cid: string, length: number = 8): string => {
+export const shortenCid = (cid: string | null | undefined, length: number = 8): string => {
+  if (!cid) return "N/A";
   if (cid.length <= length * 2) return cid;
   return `${cid.slice(0, length)}...${cid.slice(-length)}`;
 };
