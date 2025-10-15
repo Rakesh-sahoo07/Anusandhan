@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp, ShoppingCart, Coins, Activity } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, TrendingUp, ShoppingCart, Coins, Activity, Download, Calendar } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface AnalyticsData {
   totalProjects: number;
@@ -21,15 +23,24 @@ interface AnalyticsData {
   }[];
 }
 
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+
 export default function Analytics() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [salesTrend, setSalesTrend] = useState<any[]>([]);
+  const [projectDistribution, setProjectDistribution] = useState<any[]>([]);
+  const [topCreators, setTopCreators] = useState<any[]>([]);
+  const [dateRange, setDateRange] = useState<string>("7");
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (walletAddress) {
       fetchAnalytics();
+      fetchSalesTrend();
+      fetchProjectDistribution();
+      fetchTopCreators();
       
       // Set up realtime subscription for updates
       const channel = supabase
@@ -44,6 +55,8 @@ export default function Analytics() {
           },
           () => {
             fetchAnalytics();
+            fetchProjectDistribution();
+            fetchTopCreators();
           }
         )
         .on(
@@ -58,6 +71,17 @@ export default function Analytics() {
             fetchAnalytics();
           }
         )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "transactions",
+          },
+          () => {
+            fetchSalesTrend();
+          }
+        )
         .subscribe();
 
       return () => {
@@ -67,7 +91,7 @@ export default function Analytics() {
       setAnalytics(null);
       setLoading(false);
     }
-  }, [walletAddress]);
+  }, [walletAddress, dateRange]);
 
   const fetchAnalytics = async () => {
     if (!walletAddress) return;
@@ -145,6 +169,100 @@ export default function Analytics() {
     }
   };
 
+  const fetchSalesTrend = async () => {
+    const daysAgo = parseInt(dateRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysAgo);
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('created_at, amount_pyusd')
+      .gte('created_at', startDate.toISOString())
+      .eq('transaction_status', 'completed')
+      .order('created_at', { ascending: true });
+
+    if (data && !error) {
+      // Group by date
+      const grouped = data.reduce((acc: any, tx: any) => {
+        const date = new Date(tx.created_at).toLocaleDateString();
+        if (!acc[date]) {
+          acc[date] = { date, sales: 0, volume: 0 };
+        }
+        acc[date].sales += 1;
+        acc[date].volume += parseFloat(tx.amount_pyusd);
+        return acc;
+      }, {});
+
+      setSalesTrend(Object.values(grouped));
+    }
+  };
+
+  const fetchProjectDistribution = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('nft_status');
+
+    if (data && !error) {
+      const distribution = data.reduce((acc: any, project: any) => {
+        const status = project.nft_status || 'draft';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {});
+
+      setProjectDistribution(
+        Object.entries(distribution).map(([name, value]) => ({ name, value }))
+      );
+    }
+  };
+
+  const fetchTopCreators = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('creator_wallet_address')
+      .eq('nft_status', 'minted');
+
+    if (data && !error) {
+      const creators = data.reduce((acc: any, project: any) => {
+        const address = project.creator_wallet_address;
+        acc[address] = (acc[address] || 0) + 1;
+        return acc;
+      }, {});
+
+      const sorted = Object.entries(creators)
+        .map(([address, count]) => ({
+          address: `${address.slice(0, 6)}...${address.slice(-4)}`,
+          fullAddress: address,
+          nfts: count
+        }))
+        .sort((a: any, b: any) => b.nfts - a.nfts)
+        .slice(0, 10);
+
+      setTopCreators(sorted);
+    }
+  };
+
+  const exportData = () => {
+    const data = {
+      analytics,
+      salesTrend,
+      projectDistribution,
+      topCreators,
+      dateRange: `Last ${dateRange} days`,
+      exportedAt: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    toast({
+      title: "Success",
+      description: "Analytics data exported successfully",
+    });
+  };
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "project":
@@ -174,9 +292,24 @@ export default function Analytics() {
             <Button variant="ghost" onClick={() => navigate("/")}>
               ← Back to Editor
             </Button>
-            <h1 className="text-2xl font-bold">Analytics</h1>
+            <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="w-[180px]">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Select range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={exportData}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
             <Button variant="outline" onClick={() => navigate("/projects")}>
               My Projects
             </Button>
@@ -244,6 +377,94 @@ export default function Analytics() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Charts Row 1 */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Trend</CardTitle>
+                  <CardDescription>Track sales volume over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={salesTrend}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="sales" stroke="hsl(var(--primary))" strokeWidth={2} name="Sales" />
+                      <Line type="monotone" dataKey="volume" stroke="hsl(var(--secondary))" strokeWidth={2} name="Volume (PYUSD)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Distribution</CardTitle>
+                  <CardDescription>Status breakdown of all projects</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={projectDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: ${value}`}
+                        outerRadius={100}
+                        fill="hsl(var(--primary))"
+                        dataKey="value"
+                      >
+                        {projectDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts Row 2 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Creators</CardTitle>
+                <CardDescription>Most active NFT creators on the platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topCreators}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="address" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }} 
+                    />
+                    <Bar dataKey="nfts" fill="hsl(var(--primary))" name="NFTs Minted" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
             {/* Recent Activity */}
             <Card>
