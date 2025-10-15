@@ -119,9 +119,13 @@ export const MintNFTDialog = ({ open, onOpenChange, projectId, projectName, meta
       if (listingPrice && parseFloat(listingPrice) > 0) {
         setMintStep("Approving marketplace...");
         
-        // Approve marketplace to transfer NFT
-        const approveTx = await nftContract.approve(marketplaceAddress, tokenId);
-        await approveTx.wait();
+        // Check if marketplace is already approved
+        const isApproved = await nftContract.isApprovedForAll(walletAddress, marketplaceAddress);
+        if (!isApproved) {
+          // Approve marketplace to transfer ALL NFTs (more efficient than single approval)
+          const approveTx = await nftContract.setApprovalForAll(marketplaceAddress, true);
+          await approveTx.wait();
+        }
 
         setMintStep("Listing on marketplace...");
         const marketplaceContract = new ethers.Contract(marketplaceAddress, MARKETPLACE_ABI, signer);
