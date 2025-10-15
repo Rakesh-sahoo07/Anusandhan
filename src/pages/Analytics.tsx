@@ -8,7 +8,7 @@ import { Loader2, TrendingUp, ShoppingCart, Coins, Activity, Download, Calendar,
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AnalyticsData {
@@ -478,7 +478,17 @@ export default function Analytics() {
                 </CardHeader>
                 <CardContent className="relative z-20">
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={salesTrend}>
+                    <AreaChart data={salesTrend}>
+                      <defs>
+                        <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ffffff" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#ffffff" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="rgba(255,255,255,0.6)" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="rgba(255,255,255,0.6)" stopOpacity={0.05}/>
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" />
                       <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -491,9 +501,25 @@ export default function Analytics() {
                         }} 
                       />
                       <Legend wrapperStyle={{ color: '#fff' }} />
-                      <Line type="monotone" dataKey="sales" stroke="#ffffff" strokeWidth={2} name="Sales" />
-                      <Line type="monotone" dataKey="volume" stroke="rgba(255,255,255,0.6)" strokeWidth={2} name="Volume (PYUSD)" />
-                    </LineChart>
+                      <Area 
+                        type="monotone" 
+                        dataKey="sales" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#salesGradient)" 
+                        name="Sales" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="volume" 
+                        stroke="rgba(255,255,255,0.6)" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#volumeGradient)" 
+                        name="Volume (PYUSD)" 
+                      />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
