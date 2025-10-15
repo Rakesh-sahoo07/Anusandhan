@@ -410,7 +410,7 @@ function FlowCanvas() {
   );
 
   return (
-    <div className={cn("h-screen w-screen bg-black transition-all duration-300", activeNode ? "pl-[450px]" : "")}>
+    <div className="h-screen w-screen bg-black">
       {/* Top Right - Wallet & Presence */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <PresenceIndicator />
