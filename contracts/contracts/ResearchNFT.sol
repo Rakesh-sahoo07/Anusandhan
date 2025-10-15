@@ -4,15 +4,13 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title ResearchNFT
  * @dev ERC-721 NFT contract for research projects with royalty support (EIP-2981)
  */
 contract ResearchNFT is ERC721URIStorage, ERC2981, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
+    uint256 private _tokenIdCounter;
 
     // Mapping from token ID to project CID
     mapping(uint256 => string) public tokenToCID;
@@ -52,8 +50,8 @@ contract ResearchNFT is ERC721URIStorage, ERC2981, Ownable {
         require(cidToToken[projectCID] == 0, "Project already minted as NFT");
         require(royaltyPercentage <= 1000, "Royalty percentage too high"); // Max 10%
 
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        _tokenIdCounter++;
+        uint256 newTokenId = _tokenIdCounter;
 
         _safeMint(to, newTokenId);
         _setTokenURI(newTokenId, metadataURI);

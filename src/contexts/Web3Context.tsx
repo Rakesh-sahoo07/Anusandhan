@@ -19,12 +19,14 @@ const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 const PYUSD_ADDRESSES: Record<number, string> = {
   1: "0x6c3ea9036406852006290770BEdFcAbA0e23A0e8", // Ethereum Mainnet
   137: "0x9aA8b6F4E8E1C74E68dF87C3F3DAe8Ac5FCA4Da1", // Polygon
+  11155111: "0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9", // Sepolia Testnet
 };
 
 // Network configurations
 const NETWORKS: Record<number, { name: string; rpcUrl: string }> = {
   1: { name: "Ethereum", rpcUrl: "https://eth.llamarpc.com" },
   137: { name: "Polygon", rpcUrl: "https://polygon-rpc.com" },
+  11155111: { name: "Sepolia", rpcUrl: "https://eth-sepolia.g.alchemy.com/v2/_gg7wSSi0KMBsdKnGVfHDueq6xMB9EkC" },
 };
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
