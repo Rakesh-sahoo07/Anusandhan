@@ -80,17 +80,17 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-black">
+      <header className="border-b border-white/20 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button variant="ghost" onClick={() => navigate("/")} className="text-white hover:bg-white/10">
               ← Back to Editor
             </Button>
-            <h1 className="text-2xl font-bold">Research Marketplace</h1>
+            <h1 className="text-2xl font-bold text-white">Marketplace</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate("/analytics")}>
+            <Button variant="outline" onClick={() => navigate("/analytics")} className="border-white/20 text-white hover:bg-white/10">
               Analytics
             </Button>
             <WalletButton />
@@ -100,15 +100,15 @@ export default function Marketplace() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Browse Research NFTs</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-3xl font-bold mb-2 text-white">Browse Research NFTs</h2>
+          <p className="text-white/60">
             Discover and purchase AI research conversations as NFTs
           </p>
         </div>
 
         {listings.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground text-lg">
+          <Card className="p-12 text-center bg-white/5 backdrop-blur-xl border-white/20">
+            <p className="text-white/60 text-lg">
               No listings available yet. Create and mint your research to be the first!
             </p>
             <Button className="mt-4" onClick={() => navigate("/")}>
@@ -118,37 +118,47 @@ export default function Marketplace() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((listing) => (
-              <Card key={listing.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="space-y-4">
+              <Card key={listing.id} className="p-6 bg-white/5 backdrop-blur-xl border-white/20 transition-all duration-300 group relative overflow-hidden">
+                {/* Corner borders with gradient blend */}
+                <div className="absolute top-0 left-0 w-8 h-px bg-gradient-to-r from-white/80 to-transparent transition-all duration-300 group-hover:w-12" />
+                <div className="absolute top-0 left-0 w-px h-8 bg-gradient-to-b from-white/80 to-transparent transition-all duration-300 group-hover:h-12" />
+                <div className="absolute top-0 right-0 w-8 h-px bg-gradient-to-l from-white/80 to-transparent transition-all duration-300 group-hover:w-12" />
+                <div className="absolute top-0 right-0 w-px h-8 bg-gradient-to-b from-white/80 to-transparent transition-all duration-300 group-hover:h-12" />
+                <div className="absolute bottom-0 left-0 w-8 h-px bg-gradient-to-r from-white/80 to-transparent transition-all duration-300 group-hover:w-12" />
+                <div className="absolute bottom-0 left-0 w-px h-8 bg-gradient-to-t from-white/80 to-transparent transition-all duration-300 group-hover:h-12" />
+                <div className="absolute bottom-0 right-0 w-8 h-px bg-gradient-to-l from-white/80 to-transparent transition-all duration-300 group-hover:w-12" />
+                <div className="absolute bottom-0 right-0 w-px h-8 bg-gradient-to-t from-white/80 to-transparent transition-all duration-300 group-hover:h-12" />
+                
+                <div className="space-y-4 relative z-10">
                   <div>
-                    <h3 className="text-xl font-bold mb-2">{listing.projects.name}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <h3 className="text-xl font-bold mb-2 text-white">{listing.projects.name}</h3>
+                    <p className="text-sm text-white/60 line-clamp-3">
                       {listing.projects.description || "No description provided"}
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Token ID:</span>
-                      <Badge variant="secondary">#{listing.projects.nft_token_id}</Badge>
+                      <span className="text-white/60">Token ID:</span>
+                      <Badge variant="secondary" className="bg-white/10 text-white border-white/20">#{listing.projects.nft_token_id}</Badge>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Project CID:</span>
+                      <span className="text-white/60">Project CID:</span>
                       <a
                         href={`https://gateway.lighthouse.storage/ipfs/${listing.projects.lighthouse_cid}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-white hover:text-white/80 flex items-center gap-1 transition-colors"
                       >
                         {shortenCid(listing.projects.lighthouse_cid)}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Creator:</span>
+                      <span className="text-white/60">Creator:</span>
                       <button
                         onClick={() => navigate(`/profile/${listing.projects.creator_wallet_address}`)}
-                        className="font-mono text-xs hover:text-primary transition-colors"
+                        className="font-mono text-xs text-white hover:text-white/80 transition-colors"
                       >
                         {listing.projects.creator_wallet_address.slice(0, 6)}...
                         {listing.projects.creator_wallet_address.slice(-4)}
@@ -156,9 +166,9 @@ export default function Marketplace() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-border">
+                  <div className="pt-4 border-t border-white/20">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-primary">
+                      <span className="text-2xl font-bold text-white">
                         {listing.price_pyusd} PYUSD
                       </span>
                     </div>
