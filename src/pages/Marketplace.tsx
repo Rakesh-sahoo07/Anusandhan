@@ -149,10 +149,13 @@ export default function Marketplace() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Creator:</span>
-                      <span className="font-mono text-xs">
+                      <button
+                        onClick={() => navigate(`/profile/${listing.projects.creator_wallet_address}`)}
+                        className="font-mono text-xs hover:text-primary transition-colors"
+                      >
                         {listing.projects.creator_wallet_address.slice(0, 6)}...
                         {listing.projects.creator_wallet_address.slice(-4)}
-                      </span>
+                      </button>
                     </div>
                   </div>
 

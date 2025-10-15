@@ -104,6 +104,7 @@ export type Database = {
           nft_token_id: string | null
           owner_wallet_address: string
           updated_at: string
+          view_count: number | null
         }
         Insert: {
           created_at?: string
@@ -118,6 +119,7 @@ export type Database = {
           nft_token_id?: string | null
           owner_wallet_address: string
           updated_at?: string
+          view_count?: number | null
         }
         Update: {
           created_at?: string
@@ -132,6 +134,7 @@ export type Database = {
           nft_token_id?: string | null
           owner_wallet_address?: string
           updated_at?: string
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -189,12 +192,57 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          twitter_handle: string | null
+          updated_at: string
+          username: string | null
+          wallet_address: string
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          twitter_handle?: string | null
+          updated_at?: string
+          username?: string | null
+          wallet_address: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          twitter_handle?: string | null
+          updated_at?: string
+          username?: string | null
+          wallet_address?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_marketplace_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_listings: number
+          avg_sale_price: number
+          sold_listings: number
+          total_listings: number
+          total_volume: number
+        }[]
+      }
     }
     Enums: {
       listing_status: "active" | "sold" | "delisted"

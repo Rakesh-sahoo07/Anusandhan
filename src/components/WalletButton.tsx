@@ -8,8 +8,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWeb3 } from "@/contexts/Web3Context";
-import { Wallet, Copy, LogOut, Network, Loader2 } from "lucide-react";
+import { Wallet, Copy, LogOut, Network, Loader2, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const NETWORK_NAMES: Record<number, string> = {
   1: "Ethereum",
@@ -27,6 +28,7 @@ export const WalletButton = () => {
     disconnectWallet,
     switchNetwork,
   } = useWeb3();
+  const navigate = useNavigate();
 
   const copyAddress = () => {
     if (walletAddress) {
@@ -93,6 +95,16 @@ export const WalletButton = () => {
 
         <DropdownMenuSeparator />
         
+        <DropdownMenuItem onClick={() => navigate(`/profile/${walletAddress}`)} className="gap-2">
+          <User className="h-4 w-4" />
+          View Profile
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate(`/transactions`)} className="gap-2">
+          <Network className="h-4 w-4" />
+          Transaction History
+        </DropdownMenuItem>
+
         <DropdownMenuItem onClick={copyAddress} className="gap-2">
           <Copy className="h-4 w-4" />
           Copy Address
