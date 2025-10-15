@@ -188,9 +188,9 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
   };
 
   return (
-    <div className="fixed left-0 top-[10vh] h-[80vh] w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl overflow-hidden transition-all duration-300 animate-slide-in-right">
+    <div className="fixed left-0 top-[10vh] h-[80vh] w-[450px] bg-black/40 backdrop-blur-xl border-r border-white/20 shadow-2xl flex flex-col z-50 rounded-r-2xl overflow-hidden transition-all duration-300 animate-slide-in-right">
       {/* Header - Draggable */}
-      <div className="group flex items-center justify-between p-4 border-b border-white/10 cursor-move hover:bg-white/5 transition-colors">
+      <div className="group flex items-center justify-between p-4 border-b border-white/20 cursor-move bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
         <div className="flex items-center gap-3 flex-1">
           <div className="opacity-0 group-hover:opacity-40 transition-opacity">
             <GripVertical className="w-5 h-5 text-muted-foreground" />
@@ -255,8 +255,8 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
                 className={cn(
                   "max-w-[85%] rounded-2xl px-4 py-3",
                   message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary/50 text-secondary-foreground border border-white/10"
+                    ? "bg-white/10 text-white border border-white/20"
+                    : "bg-white/5 backdrop-blur-sm text-secondary-foreground border border-white/20"
                 )}
               >
                 {message.role === "assistant" ? (
@@ -277,7 +277,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
         )}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-secondary/50 border border-white/10 rounded-2xl px-4 py-3">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-3">
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                 <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -290,8 +290,8 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-white/10">
-        <div className="bg-[#2a2a2a] rounded-2xl border border-white/10 overflow-hidden">
+      <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-sm">
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
