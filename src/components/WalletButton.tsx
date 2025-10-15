@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWeb3 } from "@/contexts/Web3Context";
-import { Wallet, Copy, LogOut, Network, Loader2, User } from "lucide-react";
+import { Wallet, Copy, LogOut, Network, Loader2, User, FolderKanban } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -98,6 +98,11 @@ export const WalletButton = () => {
         <DropdownMenuItem onClick={() => navigate(`/profile/${walletAddress}`)} className="gap-2">
           <User className="h-4 w-4" />
           View Profile
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/projects')} className="gap-2">
+          <FolderKanban className="h-4 w-4" />
+          My Projects
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={() => navigate(`/transactions`)} className="gap-2">
