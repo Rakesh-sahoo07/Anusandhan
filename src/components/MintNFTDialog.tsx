@@ -212,8 +212,8 @@ export const MintNFTDialog = ({ open, onOpenChange, projectId, projectName, meta
           </div>
 
           <div className="rounded-md bg-muted p-3 text-sm space-y-1">
-            <p><strong>Metadata CID:</strong> {metadataCid.slice(0, 20)}...</p>
-            <p><strong>Data CID:</strong> {dataCid.slice(0, 20)}...</p>
+            <p><strong>Metadata CID:</strong> {metadataCid ? `${metadataCid.slice(0, 20)}...` : 'Not available'}</p>
+            <p><strong>Data CID:</strong> {dataCid ? `${dataCid.slice(0, 20)}...` : 'Not available'}</p>
             <p className="text-muted-foreground text-xs">
               ⛽ Requires gas fee for blockchain transaction
             </p>
