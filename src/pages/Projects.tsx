@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ExternalLink, Coins, ShoppingBag, Trash2, Edit, GitBranch } from "lucide-react";
+import { Loader2, ExternalLink, Coins, ShoppingBag, Trash2, Edit, GitBranch, BarChart3 } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import { MintNFTDialog } from "@/components/MintNFTDialog";
 import { ListNFTDialog } from "@/components/ListNFTDialog";
 import { DeleteProjectDialog } from "@/components/DeleteProjectDialog";
 import { loadProjectFromIPFS } from "@/utils/projectLoader";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Project {
   id: string;
@@ -195,70 +196,116 @@ export default function Projects() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-black">
+      <header className="border-b border-white/20 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/")}
+              className="text-white hover:bg-white/10"
+            >
               ← Back to Editor
             </Button>
-            <h1 className="text-2xl font-bold">My Projects</h1>
+            <h1 className="text-2xl font-bold text-white">My Projects</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate("/marketplace")}>
-              Browse Marketplace
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/analytics")}>
-              Analytics
-            </Button>
-            <WalletButton />
-          </div>
+          <TooltipProvider>
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate("/marketplace")}
+                    className="text-white hover:bg-white/10 gap-2"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    Browse Marketplace
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Explore and purchase research NFTs</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate("/analytics")}
+                    className="text-white hover:bg-white/10 gap-2"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Analytics
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View your project analytics</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <WalletButton />
+            </div>
+          </TooltipProvider>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
         {!walletAddress ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground text-lg mb-4">
+          <Card className="p-12 text-center bg-white/5 backdrop-blur-xl border-white/20">
+            <p className="text-white text-lg mb-4">
               Connect your wallet to view your projects
             </p>
             <WalletButton />
           </Card>
         ) : projects.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground text-lg">
+          <Card className="p-12 text-center bg-white/5 backdrop-blur-xl border-white/20">
+            <p className="text-white text-lg mb-4">
               You haven't created any projects yet. Start creating in the editor!
             </p>
-            <Button className="mt-4" onClick={() => navigate("/")}>
+            <Button 
+              className="mt-4 bg-white text-black hover:bg-white/90" 
+              onClick={() => navigate("/")}
+            >
               Go to Editor
             </Button>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <Card key={project.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="space-y-4">
+              <Card 
+                key={project.id} 
+                className="relative p-6 bg-white/5 backdrop-blur-xl border-white/20 hover:bg-white/10 hover:border-white/30 transition-all overflow-hidden group"
+              >
+                {/* Top-left corner border */}
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 transition-all group-hover:w-12 group-hover:h-12" />
+                
+                {/* Bottom-right corner border */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 transition-all group-hover:w-12 group-hover:h-12" />
+                <div className="space-y-4 relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2">{project.name}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <h3 className="text-xl font-bold mb-2 text-white">{project.name}</h3>
+                      <p className="text-sm text-white/60 line-clamp-2">
                         {project.description || "No description provided"}
                       </p>
                     </div>
-                    <Badge variant={getStatusColor(project.nft_status)}>
+                    <Badge 
+                      variant={getStatusColor(project.nft_status)}
+                      className="bg-white/10 text-white border-white/20"
+                    >
                       {project.nft_status}
                     </Badge>
                   </div>
 
                   {project.is_derived && project.derived_from_project_id && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-white/60">
                       <GitBranch className="h-3 w-3" />
                       <span>Derived version</span>
                     </div>
@@ -266,24 +313,24 @@ export default function Projects() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Data CID:</span>
+                      <span className="text-white/60">Data CID:</span>
                       <a
                         href={`https://gateway.lighthouse.storage/ipfs/${project.lighthouse_cid}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-white hover:text-white/80 hover:underline flex items-center gap-1"
                       >
                         {shortenCid(project.lighthouse_cid)}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Metadata CID:</span>
+                      <span className="text-white/60">Metadata CID:</span>
                       <a
                         href={`https://gateway.lighthouse.storage/ipfs/${project.metadata_cid}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-white hover:text-white/80 hover:underline flex items-center gap-1"
                       >
                         {shortenCid(project.metadata_cid)}
                         <ExternalLink className="h-3 w-3" />
@@ -291,19 +338,24 @@ export default function Projects() {
                     </div>
                     {project.nft_token_id && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Token ID:</span>
-                        <Badge variant="secondary">#{project.nft_token_id}</Badge>
+                        <span className="text-white/60">Token ID:</span>
+                        <Badge 
+                          variant="secondary"
+                          className="bg-white/10 text-white border-white/20"
+                        >
+                          #{project.nft_token_id}
+                        </Badge>
                       </div>
                     )}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Created:</span>
-                      <span className="text-xs">
+                      <span className="text-white/60">Created:</span>
+                      <span className="text-xs text-white/60">
                         {new Date(project.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-border space-y-2">
+                  <div className="pt-4 border-t border-white/20 space-y-2">
                     {project.nft_status === "draft" && (
                       <>
                         <div className="flex gap-2">
@@ -311,7 +363,7 @@ export default function Projects() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditClick(project)}
-                            className="flex-1"
+                            className="flex-1 bg-white/5 text-white border-white/20 hover:bg-white/10"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
@@ -320,14 +372,14 @@ export default function Projects() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteClick(project)}
-                            className="flex-1"
+                            className="flex-1 bg-white/5 text-white border-white/20 hover:bg-white/10"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
                           </Button>
                         </div>
                         <Button
-                          className="w-full"
+                          className="w-full bg-white text-black hover:bg-white/90"
                           onClick={() => handleMintClick(project)}
                         >
                           <Coins className="h-4 w-4 mr-2" />
@@ -338,7 +390,7 @@ export default function Projects() {
                     {project.nft_status === "minted" && (
                       <>
                         <Button
-                          className="w-full"
+                          className="w-full bg-white text-black hover:bg-white/90"
                           onClick={() => handleListClick(project)}
                         >
                           <ShoppingBag className="h-4 w-4 mr-2" />
@@ -346,7 +398,7 @@ export default function Projects() {
                         </Button>
                         <Button
                           variant="outline"
-                          className="w-full"
+                          className="w-full bg-white/5 text-white border-white/20 hover:bg-white/10"
                           onClick={() => handleCreateDerivedVersion(project)}
                         >
                           <GitBranch className="h-4 w-4 mr-2" />
@@ -357,15 +409,14 @@ export default function Projects() {
                     {project.nft_status === "listed" && (
                       <>
                         <Button
-                          className="w-full"
-                          variant="outline"
+                          className="w-full bg-white text-black hover:bg-white/90"
                           onClick={() => navigate("/marketplace")}
                         >
                           View in Marketplace
                         </Button>
                         <Button
                           variant="outline"
-                          className="w-full"
+                          className="w-full bg-white/5 text-white border-white/20 hover:bg-white/10"
                           onClick={() => handleCreateDerivedVersion(project)}
                         >
                           <GitBranch className="h-4 w-4 mr-2" />
