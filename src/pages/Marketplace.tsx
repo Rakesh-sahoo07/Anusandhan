@@ -89,7 +89,15 @@ export default function Marketplace() {
             </Button>
             <h1 className="text-2xl font-bold">Research Marketplace</h1>
           </div>
-          <WalletButton />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate("/projects")}>
+              My Projects
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/analytics")}>
+              Analytics
+            </Button>
+            <WalletButton />
+          </div>
         </div>
       </header>
 

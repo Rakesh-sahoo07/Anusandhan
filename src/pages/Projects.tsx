@@ -114,6 +114,9 @@ export default function Projects() {
             <Button variant="outline" onClick={() => navigate("/marketplace")}>
               Browse Marketplace
             </Button>
+            <Button variant="outline" onClick={() => navigate("/analytics")}>
+              Analytics
+            </Button>
             <WalletButton />
           </div>
         </div>

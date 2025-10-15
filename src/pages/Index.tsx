@@ -23,6 +23,7 @@ import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 import { WalletButton } from "@/components/WalletButton";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useNavigate } from "react-router-dom";
+import { PresenceIndicator } from "@/components/PresenceIndicator";
 
 const nodeTypes = {
   conversation: ConversationNode,
@@ -321,8 +322,18 @@ function FlowCanvas() {
           >
             Marketplace
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/analytics")}
+            className="gap-2 border-white/20 text-white hover:bg-white/10"
+          >
+            Analytics
+          </Button>
         </div>
-        <WalletButton />
+        <div className="flex items-center gap-2">
+          <PresenceIndicator />
+          <WalletButton />
+        </div>
       </div>
 
       {/* React Flow Canvas */}

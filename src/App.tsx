@@ -7,6 +7,7 @@ import { Web3Provider } from "@/contexts/Web3Context";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import Projects from "./pages/Projects";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/analytics" element={<Analytics />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
