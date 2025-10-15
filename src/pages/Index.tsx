@@ -17,7 +17,8 @@ import { ConversationNode, ConversationNodeData } from "@/components/Conversatio
 import { ChatPanel } from "@/components/ChatPanel";
 import { ConversationNode as ConversationNodeType, ConversationGraph, Message, AIModel } from "@/types/conversation";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, Upload, Save } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Plus, Download, Upload, Save, ShoppingBag, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 import { WalletButton } from "@/components/WalletButton";
@@ -284,45 +285,104 @@ function FlowCanvas() {
     <div className="h-screen w-screen bg-black">
       {/* Toolbar */}
       <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
-        <div className="flex gap-2">
-          <Button
-            onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 }, [])}
-            className="gap-2 bg-white text-black hover:bg-white/90"
-          >
-            <Plus className="w-4 h-4" />
-            New Conversation
-          </Button>
-          <Button variant="outline" onClick={handleExportAll} className="gap-2 border-white/20 text-white hover:bg-white/10">
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
-          <Button variant="outline" onClick={handleImport} className="gap-2 border-white/20 text-white hover:bg-white/10">
-            <Upload className="w-4 h-4" />
-            Import
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setSaveDialogOpen(true)}
-            className="gap-2 border-white/20 text-white hover:bg-white/10"
-          >
-            <Save className="w-4 h-4" />
-            Save as Project
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/marketplace")}
-            className="gap-2 border-white/20 text-white hover:bg-white/10"
-          >
-            Marketplace
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/analytics")}
-            className="gap-2 border-white/20 text-white hover:bg-white/10"
-          >
-            Analytics
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex gap-2 items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-2">
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => createNewNode(null, { x: Math.random() * 400, y: Math.random() * 400 }, [])}
+                  size="icon"
+                  className="bg-white text-black hover:bg-white/90"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>New Conversation</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleExportAll}
+                  className="text-white hover:bg-white/10"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Export</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleImport}
+                  className="text-white hover:bg-white/10"
+                >
+                  <Upload className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Import</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSaveDialogOpen(true)}
+                  className="text-white hover:bg-white/10"
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Save as Project</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigate("/marketplace")}
+                  className="text-white hover:bg-white/10"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Marketplace</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigate("/analytics")}
+                  className="text-white hover:bg-white/10"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Analytics</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
         <div className="flex items-center gap-2">
           <PresenceIndicator />
           <WalletButton />
