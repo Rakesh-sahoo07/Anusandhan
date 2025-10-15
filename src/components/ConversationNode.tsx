@@ -276,7 +276,7 @@ export const ConversationNode = (props: NodeProps) => {
       <div 
         className={cn(
           "rounded-xl border bg-[#1a1a1a] backdrop-blur-sm",
-          "shadow-lg border-white/10 flex flex-col min-h-[200px] max-h-[600px] overflow-hidden"
+          "shadow-lg border-white/10 flex flex-col min-h-[200px] max-h-[600px]"
         )}
       >
         {/* Header - Drag Handle */}
@@ -351,7 +351,7 @@ export const ConversationNode = (props: NodeProps) => {
         </div>
 
         {/* Conversation Area */}
-        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4" onWheel={handleWheel}>
+        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0" onWheel={handleWheel}>
           {data.messages.filter((m: Message) => m.role !== "system").length === 0 ? (
             <div className="flex flex-col h-full">
               <Input
