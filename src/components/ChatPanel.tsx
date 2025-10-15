@@ -166,7 +166,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
   };
 
   return (
-    <div className="fixed inset-y-0 left-0 w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl">
+    <div className="fixed inset-y-0 left-0 w-[600px] bg-[#1a1a1a] border-r border-white/10 shadow-2xl flex flex-col z-50 rounded-r-2xl overflow-hidden">
       {/* Header - Draggable */}
       <div className="group flex items-center justify-between p-4 border-b border-white/10 cursor-move hover:bg-white/5 transition-colors">
         <div className="flex items-center gap-3 flex-1">
@@ -212,7 +212,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" onWheel={(e) => e.stopPropagation()}>
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" onWheel={(e) => e.stopPropagation()}>
         {node.messages.filter(m => m.role !== "system").length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-muted-foreground">

@@ -246,7 +246,7 @@ export const ConversationNode = (props: NodeProps) => {
       <div 
         className={cn(
           "rounded-xl border bg-[#1a1a1a] backdrop-blur-sm",
-          "shadow-lg border-white/10 flex flex-col h-[500px]"
+          "shadow-lg border-white/10 flex flex-col h-[500px] overflow-hidden"
         )}
       >
         {/* Header - Drag Handle */}
