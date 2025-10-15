@@ -313,7 +313,7 @@ export const ConversationNode = (props: NodeProps) => {
         </div>
 
         {/* Conversation Area */}
-        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+        <div className="nodrag flex-1 overflow-y-auto p-4 space-y-4 min-h-0" onWheel={(e) => e.stopPropagation()}>
           {data.messages.filter((m: Message) => m.role !== "system").length === 0 ? (
             <div className="flex flex-col h-full">
               <Input

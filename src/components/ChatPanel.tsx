@@ -212,7 +212,7 @@ export function ChatPanel({ node, onClose, onUpdateNode, onChangeModel, onUpdate
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" onWheel={(e) => e.stopPropagation()}>
         {node.messages.filter(m => m.role !== "system").length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-muted-foreground">
