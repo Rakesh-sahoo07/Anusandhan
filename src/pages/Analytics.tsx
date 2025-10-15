@@ -78,8 +78,10 @@ export default function Analytics() {
             event: "*",
             schema: "public",
             table: "transactions",
+            filter: `seller_wallet_address=eq.${walletAddress}`,
           },
           () => {
+            fetchAnalytics();
             fetchSalesTrend();
           }
         )
@@ -127,22 +129,32 @@ export default function Analytics() {
 
       // Build activity feed
       const recentActivity = [
-        ...(projects || []).map((p) => ({
-          id: p.id,
-          type: "project",
-          description: `Created project "${p.name}"`,
-          timestamp: p.created_at,
-        })),
+        ...(projects || [])
+          .filter((p) => p.nft_status === 'draft')
+          .map((p) => ({
+            id: `project-${p.id}`,
+            type: "project",
+            description: `Created project "${p.name}"`,
+            timestamp: p.created_at,
+          })),
+        ...(projects || [])
+          .filter((p) => p.nft_status === 'minted' || p.nft_status === 'listed')
+          .map((p) => ({
+            id: `mint-${p.id}`,
+            type: "mint",
+            description: `Minted NFT "${p.name}" (Token #${p.nft_token_id})`,
+            timestamp: p.updated_at || p.created_at,
+          })),
         ...(listings || [])
           .filter((l) => l.listing_status === "active")
           .map((l) => ({
-            id: l.id,
+            id: `listing-${l.id}`,
             type: "listing",
             description: `Listed NFT for ${l.price_pyusd} PYUSD`,
             timestamp: l.listed_at,
           })),
         ...(sales || []).map((s) => ({
-          id: s.id,
+          id: `sale-${s.id}`,
           type: "sale",
           description: `Sold NFT for ${s.amount_pyusd} PYUSD`,
           timestamp: s.completed_at || s.created_at,
@@ -171,6 +183,8 @@ export default function Analytics() {
   };
 
   const fetchSalesTrend = async () => {
+    if (!walletAddress) return;
+    
     const daysAgo = parseInt(dateRange);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysAgo);
@@ -178,6 +192,7 @@ export default function Analytics() {
     const { data, error } = await supabase
       .from('transactions')
       .select('created_at, amount_pyusd')
+      .eq('seller_wallet_address', walletAddress)
       .gte('created_at', startDate.toISOString())
       .eq('transaction_status', 'completed')
       .order('created_at', { ascending: true });
@@ -199,9 +214,12 @@ export default function Analytics() {
   };
 
   const fetchProjectDistribution = async () => {
+    if (!walletAddress) return;
+    
     const { data, error } = await supabase
       .from('projects')
-      .select('nft_status');
+      .select('nft_status')
+      .eq('owner_wallet_address', walletAddress);
 
     if (data && !error) {
       const distribution = data.reduce((acc: any, project: any) => {
@@ -217,28 +235,58 @@ export default function Analytics() {
   };
 
   const fetchTopCreators = async () => {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('creator_wallet_address')
-      .eq('nft_status', 'minted');
+    if (!walletAddress) return;
+    
+    // Fetch buyers of user's NFTs (who purchased from this user)
+    const { data: buyerTransactions, error: buyerError } = await supabase
+      .from('transactions')
+      .select('buyer_wallet_address, amount_pyusd')
+      .eq('seller_wallet_address', walletAddress)
+      .eq('transaction_status', 'completed');
 
-    if (data && !error) {
-      const creators = data.reduce((acc: any, project: any) => {
-        const address = project.creator_wallet_address;
-        acc[address] = (acc[address] || 0) + 1;
-        return acc;
-      }, {});
+    // Fetch sellers user bought from
+    const { data: sellerTransactions, error: sellerError } = await supabase
+      .from('transactions')
+      .select('seller_wallet_address, amount_pyusd')
+      .eq('buyer_wallet_address', walletAddress)
+      .eq('transaction_status', 'completed');
 
-      const sorted = Object.entries(creators)
-        .map(([address, count]) => ({
+    if (!buyerError && !sellerError && (buyerTransactions || sellerTransactions)) {
+      const tradingPartners: any = {};
+      
+      // Add buyers (people who bought from user)
+      buyerTransactions?.forEach((tx: any) => {
+        const address = tx.buyer_wallet_address;
+        if (!tradingPartners[address]) {
+          tradingPartners[address] = { purchases: 0, sales: 0, volume: 0 };
+        }
+        tradingPartners[address].purchases += 1;
+        tradingPartners[address].volume += parseFloat(tx.amount_pyusd);
+      });
+
+      // Add sellers (people user bought from)
+      sellerTransactions?.forEach((tx: any) => {
+        const address = tx.seller_wallet_address;
+        if (!tradingPartners[address]) {
+          tradingPartners[address] = { purchases: 0, sales: 0, volume: 0 };
+        }
+        tradingPartners[address].sales += 1;
+        tradingPartners[address].volume += parseFloat(tx.amount_pyusd);
+      });
+
+      const sorted = Object.entries(tradingPartners)
+        .map(([address, stats]: [string, any]) => ({
           address: `${address.slice(0, 6)}...${address.slice(-4)}`,
           fullAddress: address,
-          nfts: count
+          nfts: stats.purchases + stats.sales,
+          volume: stats.volume
         }))
-        .sort((a: any, b: any) => b.nfts - a.nfts)
+        .sort((a: any, b: any) => b.volume - a.volume)
         .slice(0, 10);
 
       setTopCreators(sorted);
+    } else {
+      setTopCreators([]);
     }
   };
 
@@ -268,6 +316,8 @@ export default function Analytics() {
     switch (type) {
       case "project":
         return <Activity className="h-4 w-4 text-blue-500" />;
+      case "mint":
+        return <Coins className="h-4 w-4 text-yellow-500" />;
       case "listing":
         return <ShoppingCart className="h-4 w-4 text-purple-500" />;
       case "sale":
@@ -582,8 +632,8 @@ export default function Analytics() {
                 <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-t from-white/80 to-transparent" />
               </div>
               <CardHeader className="relative z-20">
-                <CardTitle className="text-white">Top Creators</CardTitle>
-                <CardDescription className="text-white/60">Most active NFT creators on the platform</CardDescription>
+                <CardTitle className="text-white">Top Trading Partners</CardTitle>
+                <CardDescription className="text-white/60">Users you've traded with most (by volume)</CardDescription>
               </CardHeader>
               <CardContent className="relative z-20">
                 <ResponsiveContainer width="100%" height={300}>
@@ -600,7 +650,7 @@ export default function Analytics() {
                         color: '#fff'
                       }} 
                     />
-                    <Bar dataKey="nfts" fill="#ffffff" name="NFTs Minted" />
+                    <Bar dataKey="volume" fill="#ffffff" name="Trading Volume (PYUSD)" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
