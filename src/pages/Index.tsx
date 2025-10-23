@@ -18,7 +18,7 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { ConversationNode as ConversationNodeType, ConversationGraph, Message, AIModel } from "@/types/conversation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { Plus, Download, Upload, Save, ShoppingBag, BarChart3, FolderOpen } from "lucide-react";
+import { Plus, Download, Upload, Save, ShoppingBag, BarChart3, FolderOpen, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { SaveProjectDialog } from "@/components/SaveProjectDialog";
 import { WalletButton } from "@/components/WalletButton";
@@ -411,6 +411,29 @@ function FlowCanvas() {
 
   return (
     <div className="h-screen w-screen bg-black">
+      {/* Derived Project Banner */}
+      {derivedFromProjectId && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-xl w-full px-4">
+          <div className="bg-blue-500/10 backdrop-blur-xl border border-blue-500/20 rounded-lg p-3 flex items-center gap-3">
+            <div className="bg-blue-500/20 rounded-full p-2">
+              <GitBranch className="h-4 w-4 text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-white font-medium">Purchased NFT Project</p>
+              <p className="text-xs text-white/60">This is your copy. You can freely edit and mint it as your own.</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/marketplace?highlight=${derivedFromProjectId}`)}
+              className="text-blue-400 hover:text-blue-300 text-xs"
+            >
+              View Original
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {/* Top Right - Wallet & Presence */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <PresenceIndicator />

@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.create-listing]
 verify_jwt = false
+
+[functions.duplicate-project]
+verify_jwt = false

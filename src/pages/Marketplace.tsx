@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ExternalLink, ShoppingCart } from "lucide-react";
+import { Loader2, ExternalLink, ShoppingCart, Users } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
@@ -32,11 +32,13 @@ export default function Marketplace() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [derivationCounts, setDerivationCounts] = useState<Record<string, number>>({});
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchListings();
+    fetchDerivationCounts();
   }, []);
 
   const fetchListings = async () => {
@@ -68,6 +70,31 @@ export default function Marketplace() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDerivationCounts = async () => {
+    try {
+      // Get all derived projects
+      const { data, error } = await supabase
+        .from("projects")
+        .select("derived_from_project_id")
+        .eq("is_derived", true)
+        .not("derived_from_project_id", "is", null);
+
+      if (error) throw error;
+
+      // Count derivations per original project
+      const counts: Record<string, number> = {};
+      data?.forEach((item) => {
+        if (item.derived_from_project_id) {
+          counts[item.derived_from_project_id] = (counts[item.derived_from_project_id] || 0) + 1;
+        }
+      });
+      
+      setDerivationCounts(counts);
+    } catch (error) {
+      console.error("Error fetching derivation counts:", error);
     }
   };
 
@@ -164,6 +191,15 @@ export default function Marketplace() {
                         {listing.projects.creator_wallet_address.slice(-4)}
                       </button>
                     </div>
+                    {derivationCounts[listing.project_id] > 0 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-white/60">Copies Sold:</span>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                          <Users className="h-3 w-3 mr-1" />
+                          {derivationCounts[listing.project_id]}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t border-white/20">

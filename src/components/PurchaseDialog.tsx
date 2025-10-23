@@ -81,7 +81,26 @@ export function PurchaseDialog({ listing, open, onOpenChange, onSuccess }: Purch
       const receipt = await purchaseTx.wait();
       setTxHash(receipt.hash);
 
-      // Step 3: Update database
+      // Step 3: Duplicate project for buyer
+      const { data: duplicateResult, error: duplicateError } = await supabase.functions.invoke('duplicate-project', {
+        body: {
+          original_project_id: listing.project_id,
+          buyer_wallet_address: walletAddress,
+          transaction_hash: receipt.hash,
+        }
+      });
+
+      if (duplicateError) {
+        console.error("Error duplicating project:", duplicateError);
+        toast({
+          title: "Purchase Error",
+          description: "Transaction completed but failed to create your copy",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 4: Record transaction
       const { error: txError } = await supabase.from("transactions").insert({
         listing_id: listing.id,
         buyer_wallet_address: walletAddress,
@@ -90,22 +109,18 @@ export function PurchaseDialog({ listing, open, onOpenChange, onSuccess }: Purch
         transaction_hash: receipt.hash,
         transaction_status: "completed",
         completed_at: new Date().toISOString(),
+        project_id: duplicateResult.new_project_id,
       } as any);
 
       if (txError) {
         console.error("Error recording transaction:", txError);
       }
 
-      // Update listing and project status
+      // Step 5: Update listing status
       await supabase
         .from("nft_listings")
         .update({ listing_status: "sold", sold_at: new Date().toISOString() })
         .eq("id", listing.id);
-
-      await supabase
-        .from("projects")
-        .update({ owner_wallet_address: walletAddress })
-        .eq("id", listing.project_id);
 
       setStatus("success");
       toast({

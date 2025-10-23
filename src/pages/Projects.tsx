@@ -29,6 +29,12 @@ interface Project {
   owner_wallet_address: string;
   derived_from_project_id: string | null;
   is_derived: boolean;
+  original_project?: {
+    id: string;
+    name: string;
+    nft_token_id: string;
+    creator_wallet_address: string;
+  };
 }
 
 export default function Projects() {
@@ -58,7 +64,15 @@ export default function Projects() {
       setLoading(true);
       const { data, error } = await supabase
         .from("projects")
-        .select("*")
+        .select(`
+          *,
+          original_project:derived_from_project_id (
+            id,
+            name,
+            nft_token_id,
+            creator_wallet_address
+          )
+        `)
         .eq("owner_wallet_address", walletAddress)
         .order("created_at", { ascending: false });
 
@@ -310,10 +324,23 @@ export default function Projects() {
                     </Badge>
                   </div>
 
-                  {project.is_derived && project.derived_from_project_id && (
-                    <div className="flex items-center gap-2 text-xs text-white/60">
-                      <GitBranch className="h-3 w-3" />
-                      <span>Derived version</span>
+                  {project.is_derived && project.original_project && (
+                    <div className="flex items-center gap-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-md">
+                      <GitBranch className="h-3 w-3 text-blue-400" />
+                      <div className="flex-1 text-xs">
+                        <span className="text-white/80">Purchased from NFT </span>
+                        <Badge variant="outline" className="ml-1 bg-white/5 text-white border-white/20">
+                          #{project.original_project.nft_token_id}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/marketplace?highlight=${project.derived_from_project_id}`)}
+                        className="text-blue-400 hover:text-blue-300 text-xs p-1 h-auto"
+                      >
+                        View Original
+                      </Button>
                     </div>
                   )}
 

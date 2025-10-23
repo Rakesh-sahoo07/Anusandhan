@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, TrendingUp, ShoppingCart, Coins, Activity, Download, Calendar, FolderOpen } from "lucide-react";
+import { Loader2, TrendingUp, ShoppingCart, Coins, Activity, Download, Calendar, FolderOpen, Users } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletButton } from "@/components/WalletButton";
 import { toast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ interface AnalyticsData {
   mintedNFTs: number;
   activeListings: number;
   totalSales: number;
+  totalCopiesSold: number;
   recentActivity: {
     id: string;
     type: string;
@@ -32,6 +33,7 @@ export default function Analytics() {
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
   const [projectDistribution, setProjectDistribution] = useState<any[]>([]);
   const [topCreators, setTopCreators] = useState<any[]>([]);
+  const [mostCopiedNFTs, setMostCopiedNFTs] = useState<any[]>([]);
   const [dateRange, setDateRange] = useState<string>("7");
   const { walletAddress } = useWeb3();
   const navigate = useNavigate();
@@ -42,6 +44,7 @@ export default function Analytics() {
       fetchSalesTrend();
       fetchProjectDistribution();
       fetchTopCreators();
+      fetchMostCopiedNFTs();
       
       // Set up realtime subscription for updates
       const channel = supabase
@@ -127,6 +130,15 @@ export default function Analytics() {
 
       if (salesError) throw salesError;
 
+      // Fetch derived projects (copies sold)
+      const { data: derivedProjects, error: derivedError } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("is_derived", true)
+        .eq("creator_wallet_address", walletAddress);
+
+      if (derivedError) throw derivedError;
+
       // Build activity feed
       const recentActivity = [
         ...(projects || [])
@@ -159,6 +171,12 @@ export default function Analytics() {
           description: `Sold NFT for ${s.amount_pyusd} PYUSD`,
           timestamp: s.completed_at || s.created_at,
         })),
+        ...(derivedProjects || []).map((d) => ({
+          id: `derivation-${d.id}`,
+          type: "derivation",
+          description: `Project "${d.name}" was purchased and copied`,
+          timestamp: d.created_at,
+        })),
       ]
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, 10);
@@ -168,6 +186,7 @@ export default function Analytics() {
         mintedNFTs: projects?.filter((p) => p.nft_status === "minted" || p.nft_status === "listed").length || 0,
         activeListings: listings?.filter((l) => l.listing_status === "active").length || 0,
         totalSales: sales?.length || 0,
+        totalCopiesSold: derivedProjects?.length || 0,
         recentActivity,
       });
     } catch (error) {
@@ -290,6 +309,48 @@ export default function Analytics() {
     }
   };
 
+  const fetchMostCopiedNFTs = async () => {
+    if (!walletAddress) return;
+
+    try {
+      // Get all projects owned by user that have derivatives
+      const { data: userProjects, error: projectsError } = await supabase
+        .from("projects")
+        .select("id, name, nft_token_id")
+        .eq("owner_wallet_address", walletAddress)
+        .not("nft_token_id", "is", null);
+
+      if (projectsError || !userProjects) return;
+
+      // For each project, count how many derived projects exist
+      const projectsWithCounts = await Promise.all(
+        userProjects.map(async (project) => {
+          const { count } = await supabase
+            .from("projects")
+            .select("*", { count: "exact", head: true })
+            .eq("derived_from_project_id", project.id)
+            .eq("is_derived", true);
+
+          return {
+            name: project.name,
+            tokenId: project.nft_token_id,
+            copies: count || 0,
+          };
+        })
+      );
+
+      // Sort by copies and take top 5
+      const sorted = projectsWithCounts
+        .filter((p) => p.copies > 0)
+        .sort((a, b) => b.copies - a.copies)
+        .slice(0, 5);
+
+      setMostCopiedNFTs(sorted);
+    } catch (error) {
+      console.error("Error fetching most copied NFTs:", error);
+    }
+  };
+
   const exportData = () => {
     const data = {
       analytics,
@@ -322,6 +383,8 @@ export default function Analytics() {
         return <ShoppingCart className="h-4 w-4 text-purple-500" />;
       case "sale":
         return <Coins className="h-4 w-4 text-green-500" />;
+      case "derivation":
+        return <TrendingUp className="h-4 w-4 text-blue-500" />;
       default:
         return <Activity className="h-4 w-4" />;
     }
@@ -428,7 +491,7 @@ export default function Analytics() {
         ) : (
           <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <Card className="relative bg-white/5 backdrop-blur-xl border-white/20 overflow-hidden group">
                 {/* Corner borders */}
                 <div className="absolute top-0 left-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12">
@@ -506,6 +569,26 @@ export default function Analytics() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl font-bold text-white">{analytics?.totalSales || 0}</div>
                   <p className="text-xs text-white/60">Successful transactions</p>
+                </CardContent>
+              </Card>
+
+              <Card className="relative bg-white/5 backdrop-blur-xl border-white/20 overflow-hidden group">
+                {/* Corner borders */}
+                <div className="absolute top-0 left-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12">
+                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-white/80 to-transparent" />
+                  <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-white/80 to-transparent" />
+                </div>
+                <div className="absolute bottom-0 right-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12">
+                  <div className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-l from-white/80 to-transparent" />
+                  <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-t from-white/80 to-transparent" />
+                </div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <CardTitle className="text-sm font-medium text-white">Copies Sold</CardTitle>
+                  <Users className="h-4 w-4 text-white/60" />
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="text-2xl font-bold text-white">{analytics?.totalCopiesSold || 0}</div>
+                  <p className="text-xs text-white/60">NFTs purchased by others</p>
                 </CardContent>
               </Card>
             </div>
@@ -653,6 +736,48 @@ export default function Analytics() {
                     <Bar dataKey="volume" fill="#ffffff" name="Trading Volume (PYUSD)" />
                   </BarChart>
                 </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Most Copied NFTs Chart */}
+            <Card className="relative bg-white/5 backdrop-blur-xl border-white/20 overflow-hidden group">
+              {/* Corner borders */}
+              <div className="absolute top-0 left-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12 z-10">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-white/80 to-transparent" />
+                <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-white/80 to-transparent" />
+              </div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 transition-all group-hover:w-12 group-hover:h-12 z-10">
+                <div className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-l from-white/80 to-transparent" />
+                <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-t from-white/80 to-transparent" />
+              </div>
+              <CardHeader className="relative z-20">
+                <CardTitle className="text-white">Most Copied NFTs</CardTitle>
+                <CardDescription className="text-white/60">Your NFTs that were purchased most</CardDescription>
+              </CardHeader>
+              <CardContent className="relative z-20">
+                {mostCopiedNFTs.length === 0 ? (
+                  <p className="text-center text-white/60 py-8">
+                    No NFT copies sold yet
+                  </p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={mostCopiedNFTs} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis type="number" stroke="rgba(255,255,255,0.6)" />
+                      <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" width={150} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(0,0,0,0.9)', 
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '8px',
+                          backdropFilter: 'blur(12px)',
+                          color: '#fff'
+                        }} 
+                      />
+                      <Bar dataKey="copies" fill="#ffffff" name="Copies Sold" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
