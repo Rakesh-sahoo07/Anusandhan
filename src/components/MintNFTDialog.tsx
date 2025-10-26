@@ -45,6 +45,15 @@ export const MintNFTDialog = ({ open, onOpenChange, projectId, projectName, meta
       return;
     }
 
+    if (!metadataCid || !dataCid) {
+      toast({
+        title: "Error",
+        description: "Project must be saved with valid metadata before minting",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const royaltyBps = Math.floor(parseFloat(royaltyPercentage) * 100); // Convert to basis points
     if (royaltyBps < 0 || royaltyBps > 1000) {
       toast({
