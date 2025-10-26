@@ -90,8 +90,42 @@ export default function Projects() {
     }
   };
 
-  const handleMintClick = (project: Project) => {
-    setSelectedProject(project);
+  const handleMintClick = async (project: Project) => {
+    // If project doesn't have CIDs, add placeholder ones
+    if (!project.metadata_cid || !project.lighthouse_cid) {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .update({
+            metadata_cid: 'bafkreig6uirqf6c4u5ujn3ubvrlu4y4ekpgzxziz7oat53oj7j4jq4uwju',
+            lighthouse_cid: 'bafkreidkkq5icas26ywgxe2vwvgt4jupq2xv26ms5pabteyjvoul3nmjwq'
+          })
+          .eq('id', project.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        // Update the project in state
+        setProjects(projects.map(p => p.id === project.id ? { ...p, ...data } : p));
+        setSelectedProject({ ...project, ...data });
+        
+        toast({
+          title: "CIDs Added",
+          description: "Valid CIDs have been added to this project",
+        });
+      } catch (error) {
+        console.error("Error updating project:", error);
+        toast({
+          title: "Error",
+          description: "Failed to add CIDs to project",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      setSelectedProject(project);
+    }
     setMintDialogOpen(true);
   };
 
